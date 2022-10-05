@@ -3,8 +3,10 @@ ccbench
 Add time parameter and thread placement
 
 new options:
+
   -a, --duration <int>
         runtime of the test(in seconds) (default=5)
+  
   -b, --threads <int>
         number of threads to create (default=4)
 
