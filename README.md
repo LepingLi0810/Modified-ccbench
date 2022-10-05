@@ -1,7 +1,11 @@
 ccbench
 =======
-Use rdtsc() and rdtscp() instructions to monitor performance.
-Changes start at line 408 in ccbench.c
+Add time parameter and thread placement
+new options:
+  -a, --duration <int>
+        runtime of the test(in seconds) (default=5)
+  -b, --threads <int>
+        number of threads to create (default=4)
 
 
 Interpreting the results:
@@ -9,30 +13,52 @@ Interpreting the results:
 
 The comments prefixed with "#>>" explain the results.
 
-./ccbench -r100000 -t0 -a5
-<pre>
-#>> settings:
-test:    STORE_ON_MODIFIED  / #cores: 2 / #repetitions: 100000 / stride: 2048 (128 kiB)  / fence:  none
-core1:   0 / core2:   1 
-* warning: avg pfd correction is 16.2 with std deviation: 7.5%. Recalculating.
+[leping@snares-02] (9)$ ./ccbench -a15 -b6 -c6 -t0 -r10000000
+test:    STORE_ON_MODIFIED  / #cores: 6 / #repetitions: 10000000 / stride: 2048 (128 kiB)  / fence:  none
+5 thread = 8 cpu
+4 thread = 7 cpu
+3 thread = 6 cpu
+2 thread = 2 cpu
+1 thread = 1 cpu
+0 thread = 0 cpu
+* warning: avg pfd correction is 30.5 with std deviation: 2233763527852936704.0%. Recalculating.
+* warning: avg pfd correction is 30.5 with std deviation: 2233763542496078080.0%. Recalculating.
+* warning: avg pfd correction is 30.7 with std deviation: 171.5%. Recalculating.
+* warning: avg pfd correction is 30.7 with std deviation: 171.5%. Recalculating.
+* warning: avg pfd correction is 30.7 with std deviation: 171.5%. Recalculating.
+* warning: avg pfd correction is 30.7 with std deviation: 171.5%. Recalculating.
 * warning: setting pfd correction manually
 * warning: no default value for pfd correction is provided (fix in src/pfd.c)
-* set pfd correction: 16 (std deviation: 6.9%)
+* set pfd correction: 18 (std deviation: 16236615652737165312.0%)
 
-* warning: avg pfd correction is 16.2 with std deviation: 7.0%. Recalculating.
 * warning: setting pfd correction manually
 * warning: no default value for pfd correction is provided (fix in src/pfd.c)
-* set pfd correction: 17 (std deviation: 24.6%)
+* set pfd correction: 18 (std deviation: 16236560247138439168.0%)
 
-number of operations Core 0 performed within 5 seconds: 63450
+* warning: setting pfd correction manually
+* warning: no default value for pfd correction is provided (fix in src/pfd.c)
+* set pfd correction: 27 (std deviation: 141.4%)
 
-number of operations Core 1 performed within 5 seconds: 63450
+* warning: setting pfd correction manually
+* warning: no default value for pfd correction is provided (fix in src/pfd.c)
+* set pfd correction: 27 (std deviation: 141.4%)
 
-#>> The meaning of the results
-[00]  ** Results from Core 0 and 1 : store on modified
+* warning: setting pfd correction manually
+* warning: no default value for pfd correction is provided (fix in src/pfd.c)
+* set pfd correction: 27 (std deviation: 141.4%)
 
-#>> The final val in the cache line that was used / the sum of all loads on this core
-#>> These values can be used for ensuring the correctness of some test (e.g., FAI)
-[00]  value of cl is 0          / sum is 0
-[01]  value of cl is 0          / sum is 0
+* warning: setting pfd correction manually
+* warning: no default value for pfd correction is provided (fix in src/pfd.c)
+* set pfd correction: 27 (std deviation: 141.4%)
+
+id 00 operation_executed 37315 schedstat 14997469498 2602014 115
+id 03 operation_executed 37315 schedstat 14996736407 487683 66
+id 04 operation_executed 37315 schedstat 14996707076 408299 71
+id 02 operation_executed 37315 schedstat 14988748721 8408886 80
+id 01 operation_executed 37315 schedstat 14996178412 318418 52
+id 05 operation_executed 37315 schedstat 14993440997 3697165 64
+Total Exeuctions = 223890
+Average atomic execution time(ns) = 66997.186118
+Per thread execution average = 37315.000000
+
 </pre>
