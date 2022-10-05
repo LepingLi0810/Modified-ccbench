@@ -1,4 +1,4 @@
-/*   
+/*
  *   File: ccbench.c
  *   Author: Vasileios Trigonakis <vasileios.trigonakis@epfl.ch>
  *   Description: the main functionality of ccbench
@@ -28,8 +28,11 @@
  */
 
 #include "ccbench.h"
-#include "rdtsc.h"
-#define CYCLE_PER_S 2300000000
+//#include "rdtsc.h"
+
+#define gettid() syscall(SYS_gettid)
+
+//#define CYCLE_PER_S 2300000000
 
 typedef unsigned long long ull;
 
@@ -43,7 +46,8 @@ cpu_set_t cpus;
 moesi_type_t test_test = DEFAULT_TEST;
 uint32_t test_cores = DEFAULT_CORES;
 uint32_t test_reps = DEFAULT_REPS;
-uint32_t test_time = DEFAULT_TIME;
+uint32_t test_duration = DEFAULT_DURATION;
+uint32_t test_threads = DEFAULT_THREADS;
 uint32_t test_core1 = DEFAULT_CORE1;
 uint32_t test_core2 = DEFAULT_CORE2;
 uint32_t test_core3 = DEFAULT_CORE3;
@@ -81,339 +85,51 @@ static uint32_t swap(volatile cache_line_t* cl, volatile uint64_t reps);
 static size_t parse_size(char* optarg);
 static void create_rand_list_cl(volatile uint64_t* list, size_t n);
 
+volatile cache_line_t* cache_line;
 
-int
-main(int argc, char **argv) 
-{
+typedef struct {
+    volatile int *stop;
+    pthread_t thread;
+    //int priority;
+    int id;
+    int ncpu;
+    // outputs
+    ull operation_executed;
+} task_t __attribute__ ((aligned (64)));
 
-  /* before doing any allocations */
-#if defined(__tile__)
-  if (tmc_cpus_get_my_affinity(&cpus) != 0)
-    {
-      tmc_task_die("Failure in 'tmc_cpus_get_my_affinity()'.");
-    }
-#endif
+void *run_test(void *arg) {
+  task_t *task = (task_t *) arg;
+  int cpu = 0;
+  if (task->ncpu != 0) {
+        //cpu_set_t cpuset;
+        //CPU_ZERO(&cpuset);
+        /*for (int i = 0; i < task->ncpu; i++) {
+            if (i < 8 || i >= 24)
+                CPU_SET(i, &cpuset);
+            else if (i < 16)
+                CPU_SET(i+8, &cpuset);
+            else
+                CPU_SET(i-8, &cpuset);
+        }*/
 
-#if defined(XEON)
-  set_cpu(1);
-#else
-  set_cpu(0);
-#endif
-
-  struct option long_options[] = 
-    {
-      // These options don't set a flag
-      {"help",                      no_argument,       NULL, 'h'},
-      {"cores",                     required_argument, NULL, 'c'},
-      {"repetitions",               required_argument, NULL, 'r'},
-      {"test",                      required_argument, NULL, 't'},
-      {"core1",                     required_argument, NULL, 'x'},
-      {"core2",                     required_argument, NULL, 'y'},
-      {"core3",                     required_argument, NULL, 'z'},
-      {"core-others",               required_argument, NULL, 'o'},
-      {"stride",                    required_argument, NULL, 's'},
-      {"fence",                     required_argument, NULL, 'e'},
-      {"mem-size",                  required_argument, NULL, 'm'},
-      {"flush",                     no_argument,       NULL, 'f'},
-      {"success",                   no_argument,       NULL, 'u'},
-      {"verbose",                   no_argument,       NULL, 'v'},
-      {"print",                     required_argument, NULL, 'p'},
-      {"time",                      required_argument, NULL, 'a'},
-      {NULL, 0, NULL, 0}
-    };
-
-  int i;
-  char c;
-  while(1) 
-    {
-      i = 0;
-      c = getopt_long(argc, argv, "hc:r:t:x:m:y:z:o:e:fvup:s:a:", long_options, &i);
-
-      if(c == -1)
-	break;
-
-      if(c == 0 && long_options[i].flag == 0)
-	c = long_options[i].val;
-
-      switch(c) 
-	{
-	case 0:
-	  /* Flag is automatically set */
-	  break;
-	case 'h':
-	  printf("ccbench  Copyright (C) 2013  Vasileios Trigonakis <vasileios.trigonakis@epfl.ch>\n"
-		 "This program comes with ABSOLUTELY NO WARRANTY.\n"
-		 "This is free software, and you are welcome to redistribute it under certain conditions.\n\n"
-		 "ccbecnh is an application for measuring the cache-coherence latencies, i.e., the latencies of\n"
-		 "of loads, stores, CAS, FAI, TAS, and SWAP\n"
-		 "\n"
-		 "Usage:\n"
-		 "  ./ccbench [options...]\n"
-		 "\n"
-		 "Options:\n"
-		 "  -h, --help\n"
-		 "        Print this message\n"
-		 "  -c, --cores <int>\n"
-		 "        Number of cores to run the test on (default=" XSTR(DEFAULT_CORES) ")\n"
-		 "  -r, --repetitions <int>\n"
-		 "        Repetitions of the test case (default=" XSTR(DEFAULT_REPS) ")\n"
-		 "  -t, --test <int>\n"
-		 "        Test case to run (default=" XSTR(DEFAULT_TEST) "). See below for supported events\n"
-		 "  -x, --core1 <int>\n"
-		 "        1st core to use (default=" XSTR(DEFAULT_CORE1) ")\n"
-		 "  -y, --core2 <int>\n"
-		 "        2nd core to use (default=" XSTR(DEFAULT_CORE2) ")\n"
-		 "  -z, --core3 <int>\n"
-		 "        3rd core to use. Some (most) tests use only 2 cores (default=" XSTR(DEFAULT_CORE3) ")\n"
-		 "  -o, --core-others <int>\n"
-		 "        Offset for core that the processes with ID > 3 should bind (default=" XSTR(DEFAULT_CORE_OTHERS) ")\n"
-		 "  -f, --flush\n"
-		 "        Perform a cache line flush before the test (default=" XSTR(DEFAULT_FLUSH) ")\n"
-		 "  -s, --stride <int>\n"
-		 "        What stride size to use when accessing the cache line(s) (default=" XSTR(DEFAULT_STRIDE) ")\n"
-		 "        The application draws a random number X in the [0..(stride-1)] range and applies the target\n"
-		 "        operation on this random cache line. The operation is completed when X=0. The stride is used\n"
-		 "        in order to fool the hardware prefetchers that could hide the latency we want to measure.\n"
-		 "  -e, --fence <int>\n"
-		 "        What memory barrier (fence) lvl to use (default=" XSTR(DEFAULT_FENCE) ")\n"
-		 "        0 = no fences / 1 = load-store fences / 2 = full fences / 3 = load-none fences / 4 = none-store fences\n"
-		 "        5 = full-none fences / 6 = none-full fences / 7 = full-store fences / 8 = load-full fences \n"
-		 "  -m, --mem-size <int>\n"
-		 "        What memory size to use (in cache lines) (default=" XSTR(CACHE_LINE_NUM) ")\n"
-		 "  -u, --success\n"
-		 "        Make all atomic operations be successfull (e.g, TAS_ON_SHARED)\n"
-		 "  -v, --verbose\n"
-		 "        Verbose printing of results (default=" XSTR(DEFAULT_VERBOSE) ")\n"
-		 "  -p, --print <int>\n"
-		 "        If verbose, how many results to print (default=" XSTR(DEFAULT_PRINT) ")\n"
-		 "  -a, --time <int>\n"
-		 "        runtime of the test(in seconds) (default=" XSTR(DEFAULT_TIME) ")\n"
-		 );
-	  printf("Supported events: \n");
-	  int ar;
-	  for (ar = 0; ar < NUM_EVENTS; ar++)
-	    {
-	      printf("      %2d - %s\n", ar, moesi_type_des[ar]);
-	    }
-
-	  exit(0);
-	case 'c':
-	  test_cores = atoi(optarg);
-	  break;
-	case 'r':
-	  test_reps = atoi(optarg);
-	  break;
-	case 't':
-	  test_test = atoi(optarg);
-	  break;
-	case 'x':
-	  test_core1 = atoi(optarg);
-	  break;
-	case 'y':
-	  test_core2 = atoi(optarg);
-	  break;
-	case 'z':
-	  test_core3 = atoi(optarg);
-	  break;
-	case 'o':
-	  test_core_others = atoi(optarg);
-	  break;
-	case 'f':
-	  test_flush = 1;
-	  break;
-	case 's':
-	  test_stride = pow2roundup(atoi(optarg));
-	  break;
-	case 'e':
-	  test_fence = atoi(optarg);
-	  break;
-	case 'm':
-	  test_mem_size = parse_size(optarg);
-	  printf("Data size : %zu KiB\n", test_mem_size / 1024);
-	  break;
-	case 'u':
-	  test_ao_success = 1;
-	  break;
-	case 'v':
-	  test_verbose = 1;
-	  break;
-	case 'p':
-	  test_verbose = 1;
-	  test_print = atoi(optarg);
-	  break;
-	case 'a':
-	  test_time = atoi(optarg);
-	  break;
-	case '?':
-	  printf("Use -h or --help for help\n");
-	  exit(0);
-	default:
-	  exit(1);
-	}
-    }
-
-
-  test_cache_line_num = test_mem_size / sizeof(cache_line_t);
-
-  if ((test_test == STORE_ON_EXCLUSIVE || test_test == STORE_ON_INVALID || test_test == LOAD_FROM_INVALID
-       || test_test == LOAD_FROM_EXCLUSIVE || test_test == LOAD_FROM_SHARED) && !test_flush)
-    {
-      assert((test_reps * test_stride) <= test_cache_line_num);
-    }
-
-  if (test_test != LOAD_FROM_MEM_SIZE)
-    {
-      assert(test_stride < test_cache_line_num);
-    }
-
-
-  ID = 0;
-  printf("test: %20s  / #cores: %d / #repetitions: %d / stride: %d (%u kiB)", moesi_type_des[test_test], 
-	 test_cores, test_reps, test_stride, (64 * test_stride) / 1024);
-  if (test_flush)
-    {
-      printf(" / flush");
-    }
-
-  printf("  / fence: ");
-
-  switch (test_fence)
-    {
-    case 1:
-      printf(" load & store");
-      test_lfence = test_sfence = 1;
-      break;
-    case 2:
-      printf(" full");
-      test_lfence = test_sfence = 2;
-      break;
-    case 3:
-      printf(" load");
-      test_lfence = 1;
-      test_sfence = 0;
-      break;
-    case 4:
-      printf(" store");
-      test_lfence = 0;
-      test_sfence = 1;
-      break;
-    case 5:
-      printf(" full/none");
-      test_lfence = 2;
-      test_sfence = 0;
-      break;
-    case 6:
-      printf(" none/full");
-      test_lfence = 0;
-      test_sfence = 2;
-      break;
-    case 7:
-      printf(" full/store");
-      test_lfence = 2;
-      test_sfence = 1;
-      break;
-    case 8:
-      printf(" load/full");
-      test_lfence = 1;
-      test_sfence = 2;
-      break;    
-    case 9:
-      printf(" double write");
-      test_lfence = 0;
-      test_sfence = 3;
-      break;
-    default:
-      printf(" none");
-      test_lfence = test_sfence = 0;
-      break;
-    }
-
-  printf("\n");
-
-  printf("core1: %3u / core2: %3u ", test_core1, test_core2);
-  if (test_cores >= 3)
-    {
-      printf("/ core3: %3u", test_core3);
-    }
-  printf("\n");
-
-  barriers_init(test_cores);
-  seeds = seed_rand();
-
-  volatile cache_line_t* cache_line = cache_line_open();
-  int rank;
-  for (rank = 1; rank < test_cores; rank++) 
-    {
-      pid_t child = fork();
-      if (child < 0) 
-	{
-	  P("Failure in fork():\n%s", strerror(errno));
-	} 
-      else if (child == 0) 
-	{
-	  goto fork_done;
-	}
-    }
-  rank = 0;
-
-//many process
- fork_done:
-  ID = rank;
-  size_t core = 0;
-  switch (ID)
-    {
-    case 0:
-      core = test_core1;
-      break;
-    case 1:
-      core = test_core2;
-      break;
-    case 2:
-      core = test_core3;
-      break;
-    default:
-      core = ID - test_core_others;
-    }
-
-#if defined(NIAGARA)
-  if (test_cores <= 8 && test_cores > 3)
-    {
-      if (ID == 0)
-	{
-	  PRINT(" ** spreading the 8 threads on the 8 real cores");
-	}
-      core = ID * 8;
-    }
-#endif
-
-  set_cpu(core);
-
-#if defined(__tile__)
-  tmc_cmem_init(0);		/*   initialize shared memory */
-#endif  /* TILERA */
-
-  volatile uint64_t* cl = (volatile uint64_t*) cache_line;
-
-  B0;
-  if (ID < 3)
-    {
-      PFDINIT(test_reps);
-    }
-  B0;
-
-  /* /\********************************************************************************* */
-  /*  *  main functionality */
-  /*  *********************************************************************************\/ */
-
-  ull start = rdtsc();
-  ull end = start + CYCLE_PER_S * test_time;
-  ull now;
-  
-
+        if (task->id >= (test_threads / 2)) {
+                cpu = (task->id / (test_threads /2)) + 5 + (task->id % (test_threads / 2));
+                printf("%d thread = %d cpu\n", task->id, cpu);
+                //CPU_SET(cpu, &cpuset);
+        } else {
+                cpu = task->id;
+                printf("%d thread = %d cpu\n", task->id, task->id);
+        }
+        //CPU_SET(cpu, &cpuset);
+        set_cpu(cpu);
+  }
+  ull reps = 0;
   uint64_t sum = 0;
-
-  volatile uint64_t reps;
-  for (reps = 0; (reps < test_reps) && ((now = rdtscp()) < end); reps++)
+  volatile uint64_t* cl = (volatile uint64_t*) cache_line;
+  B0;
+  PFDINIT(test_reps);
+  B0;
+  for (reps = 0; !*task->stop; reps++)
     {
       if (test_flush)
 	{
@@ -421,12 +137,11 @@ main(int argc, char **argv)
 	  _mm_clflush((void*) cache_line);
 	  _mm_mfence();
 	}
-
       B0;			/* BARRIER 0 */
       switch (test_test)
 	{
 	case STORE_ON_MODIFIED: /* 0 */
-	  {  
+	  {
 	    switch (ID)
 	      {
 	      case 0:
@@ -439,6 +154,7 @@ main(int argc, char **argv)
 		break;
 	      default:
 		B1;		/* BARRIER 1 */
+		store_0_eventually(cache_line, reps);
 		break;
 	      }
 	    break;
@@ -588,7 +304,7 @@ main(int argc, char **argv)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
-		B1;		
+		B1;
 		break;
 	      case 1:
 		B1;			/* BARRIER 1 */
@@ -723,6 +439,7 @@ main(int argc, char **argv)
 		break;
 	      default:
 		B1;		/* BARRIER 1 */
+		sum += cas_0_eventually(cache_line, reps);
 		break;
 	      }
 	    break;
@@ -741,6 +458,7 @@ main(int argc, char **argv)
 		break;
 	      default:
 		B1;		/* BARRIER 1 */
+		sum += fai(cache_line, reps);
 		break;
 	      }
 	    break;
@@ -781,6 +499,7 @@ main(int argc, char **argv)
 		sum += swap(cache_line, reps);
 		break;
 	      default:
+	        sum += swap(cache_line, reps);
 		B1;		/* BARRIER 1 */
 		break;
 	      }
@@ -1089,375 +808,324 @@ main(int argc, char **argv)
       B3;			/* BARRIER 3 */
     }
 
-  if (!test_verbose)
+
+  task->operation_executed = reps;
+  pid_t tid = gettid();
+  pid_t pid = getpid();
+  char path[256];
+  char buffer[1024] = { 0 };
+  snprintf(path, 256, "/proc/%d/task/%d/schedstat", pid, tid);
+  int fd = open(path, O_RDONLY);
+  if (fd < 0) {
+      perror("open");
+      exit(-1);
+  }
+  if (read(fd, buffer, 1024) <= 0) {
+      perror("read");
+      exit(-1);
+  }
+
+  printf("id %02d "
+          "operation_executed %llu "
+          "schedstat %s",
+          task->id,
+          task->operation_executed,
+          buffer);
+  return 0;
+}
+
+
+
+int
+main(int argc, char **argv)
+{
+
+  /* before doing any allocations */
+#if defined(__tile__)
+  if (tmc_cpus_get_my_affinity(&cpus) != 0)
     {
-      test_print = 0;
+      tmc_task_die("Failure in 'tmc_cpus_get_my_affinity()'.");
     }
+#endif
 
-  printf("number of operations Core %d performed within %d seconds: %ld\n\n", ID, test_time, reps);
-  /*
-  uint32_t id;
-  for (id = 0; id < test_cores; id++)
+#if defined(XEON)
+  set_cpu(1);
+#else
+  set_cpu(0);
+#endif
+
+  struct option long_options[] =
     {
-      if (ID == id && ID < 3)
-	{
-	  switch (test_test)
-	    {
-	    case STORE_ON_OWNED_MINE:
-	    case STORE_ON_OWNED:
-	      if (ID < 2)
-		{
-		  PRINT(" *** Core %2d ************************************************************************************", ID);
-		  PFDPN(0, test_reps, test_print);
-		  if (ID == 1)
-		    {
-		      PFDPN(1, test_reps, test_print);
-		    }
-		}
-	      break;
-	    case CAS_CONCURRENT:
-	      if (ID < 2)
-		{
-		  PRINT(" *** Core %2d ************************************************************************************", ID);
-		  PFDPN(0, test_reps, test_print);
-		}
-	      break;
-	    case LOAD_FROM_L1:
-	      if (ID < 1)
-		{
-		  PRINT(" *** Core %2d ************************************************************************************", ID);
-		  PFDPN(0, test_reps, test_print);
-		}
-	      break;
-	    case LOAD_FROM_MEM_SIZE:
-	      if (ID < 3)
-		{
-		  PRINT(" *** Core %2d ************************************************************************************", ID);
-		  PFDPN(0, test_reps, test_print);
-		}
-	      break;
-	    default:
-	      PRINT(" *** Core %2d ************************************************************************************", ID);
-	      PFDPN(0, test_reps, test_print);
-	    }
-	}
-      B0;
-    }
-  B10;
+      // These options don't set a flag
+      {"help",                      no_argument,       NULL, 'h'},
+      {"cores",                     required_argument, NULL, 'c'},
+      {"repetitions",               required_argument, NULL, 'r'},
+      {"test",                      required_argument, NULL, 't'},
+      {"core1",                     required_argument, NULL, 'x'},
+      {"core2",                     required_argument, NULL, 'y'},
+      {"core3",                     required_argument, NULL, 'z'},
+      {"core-others",               required_argument, NULL, 'o'},
+      {"stride",                    required_argument, NULL, 's'},
+      {"fence",                     required_argument, NULL, 'e'},
+      {"mem-size",                  required_argument, NULL, 'm'},
+      {"flush",                     no_argument,       NULL, 'f'},
+      {"success",                   no_argument,       NULL, 'u'},
+      {"verbose",                   no_argument,       NULL, 'v'},
+      {"print",                     required_argument, NULL, 'p'},
+      {"duration",                  required_argument, NULL, 'a'},
+      {"threads",                   required_argument, NULL, 'b'},
+      {NULL, 0, NULL, 0}
+    };
 
-*/
-  if (ID == 0)
+  int i;
+  char c;
+  while(1)
     {
-      switch (test_test)
+      i = 0;
+      c = getopt_long(argc, argv, "hc:r:t:x:m:y:z:o:e:fvup:s:a:b:", long_options, &i);
+
+      if(c == -1)
+	break;
+
+      if(c == 0 && long_options[i].flag == 0)
+	c = long_options[i].val;
+
+      switch(c)
 	{
-	case STORE_ON_MODIFIED:
-	  {
-	    if (test_flush)
-	      {
-		PRINT(" ** Results from Core 0 : store on invalid");
-		PRINT(" ** Results from Core 1 : store on modified");
-	      }
-	    else
-	      {
-		PRINT(" ** Results from Core 0 and 1 : store on modified");
-	      }
-	    break;
-	  }
-	case STORE_ON_MODIFIED_NO_SYNC:
-	  {
-	    if (test_flush)
-	      {
-		PRINT(" ** Results do not make sense");
-	      }
-	    else
-	      {
-		PRINT(" ** Results from Core 0 and 1 : store on modified while another core is "
-		      "also trying to do the same");
-	      }
-	    break;
-	  }
-	case STORE_ON_EXCLUSIVE:
-	  {
-	    if (test_flush)
-	      {
-		PRINT(" ** Results from Core 0 : load from invalid");
-	      }
-	    else
-	      {
-		PRINT(" ** Results from Core 0 : load from invalid, BUT could have prefetching");
-	      }
-	    PRINT(" ** Results from Core 1 : store on exclusive");
-	    break;
-	  }
-	case STORE_ON_SHARED:
-	  {
-	    PRINT(" ** Results from Core 0 & 2: load from modified and exclusive or shared, respectively");
-	    PRINT(" ** Results from Core 1 : store on shared");
-	    if (test_cores < 3)
-	      {
-		PRINT(" ** Need >=3 processes to achieve STORE_ON_SHARED");
-	      }
-	    break;
-	  }
-	case STORE_ON_OWNED_MINE:
-	  {
-	    PRINT(" ** Results from Core 0 : load from modified (makes it owned, if owned state is supported)");
-	    if (test_flush)
-	      {
-		PRINT(" ** Results 1 from Core 1 : store to invalid");
-	      }
-	    else
-	      {
-		PRINT(" ** Results 1 from Core 1 : store to modified mine");
-	      }
-
-	    PRINT(" ** Results 2 from Core 1 : store to owned mine (if owned is supported, else exclusive)");
-	    break;
-	  }
-	case STORE_ON_OWNED:
-	  {
-	    if (test_flush)
-	      {
-		PRINT(" ** Results from Core 0 : store to modified");
-	      }
-	    else
-	      {
-		PRINT(" ** Results from Core 0 : store to invalid");
-	      }
-	    PRINT(" ** Results 1 from Core 1 : load from modified (makes it owned, if owned state is supported)");
-	    PRINT(" ** Results 2 from Core 1 : store to owned (if owned is supported, else exclusive mine)");
-	    break;
-	  }
-	case LOAD_FROM_MODIFIED:
-	  {
-	    if (test_flush)
-	      {
-		PRINT(" ** Results from Core 0 : store to invalid");
-	      }
-	    else
-	      {
-		PRINT(" ** Results from Core 0 : store to owned mine (if owned state supported, else exclusive)");
-	      }
-
-	    PRINT(" ** Results from Core 1 : load from modified (makes it owned, if owned state supported)");
-
-	    break;
-	  }
-	case LOAD_FROM_EXCLUSIVE:
-	  {
-	    if (test_flush)
-	      {
-		PRINT(" ** Results from Core 0 : load from invalid");
-	      }
-	    else
-	      {
-		PRINT(" ** Results from Core 0 : load from invalid, BUT could have prefetching");
-	      }
-	    PRINT(" ** Results from Core 1 : load from exclusive");
-
-	    break;
-	  }
-	case STORE_ON_INVALID:
-	  {
-	    PRINT(" ** Results from Core 0 : store on invalid");
-	    PRINT(" ** Results from Core 1 : cache line flush");
-	    break;
-	  }
-	case LOAD_FROM_INVALID:
-	  {
-	    PRINT(" ** Results from Core 0 : load from invalid");
-	    PRINT(" ** Results from Core 1 : cache line flush");
-	    break;
-	  }
-	case LOAD_FROM_SHARED:
-	  {
-	    if (test_flush)
-	      {
-		PRINT(" ** Results from Core 0 : load from invalid");
-	      }
-	    else
-	      {
-		PRINT(" ** Results from Core 0 : load from invalid, BUT could have prefetching");
-	      }
-	    PRINT(" ** Results from Core 1 : load from exclusive");
-	    if (test_cores >= 3)
-	      {
-		PRINT(" ** Results from Core 2 : load from shared");
-	      }
-	    else
-	      {
-		PRINT(" ** Need >=3 processes to achieve LOAD_FROM_SHARED");
-	      }
-	    break;
-	  }
-	case LOAD_FROM_OWNED:
-	  {
-	    if (test_flush)
-	      {
-		PRINT(" ** Results from Core 0 : store to invalid");
-	      }
-	    else
-	      {
-		PRINT(" ** Results from Core 0 : store to owned mine (if owned is supported, else shared)");
-	      }
-	    PRINT(" ** Results from Core 1 : load from modified");
-	    if (test_cores == 3)
-	      {
-		PRINT(" ** Results from Core 2 : load from owned");
-	      }
-	    else
-	      {
-		PRINT(" ** Need 3 processes to achieve LOAD_FROM_OWNED");
-	      }
-	    break;
-	  }
-	case CAS:
-	  {
-	    PRINT(" ** Results from Core 0 : CAS successfull");
-	    PRINT(" ** Results from Core 1 : CAS unsuccessfull");
-	    break;
-	  }
-	case FAI:
-	  {
-	    PRINT(" ** Results from Cores 0 & 1: FAI");
-	    break;
-	  }
-	case TAS:
-	  {
-	    PRINT(" ** Results from Core 0 : TAS successfull");
-	    PRINT(" ** Results from Core 1 : TAS unsuccessfull");
-	    break;
-	  }
-	case SWAP:
-	  {
-	    PRINT(" ** Results from Cores 0 & 1: SWAP");
-	    break;
-	  }
-	case CAS_ON_MODIFIED:
-	  {
-	    PRINT(" ** Results from Core 0 : store on modified");
-	    uint32_t succ = 50 + test_ao_success * 50;
-	    PRINT(" ** Results from Core 1 : CAS on modified (%d%% successfull)", succ);
-	    break;
-	  }
-	case FAI_ON_MODIFIED:
-	  {
-	    PRINT(" ** Results from Core 0 : store on modified");
-	    PRINT(" ** Results from Core 1 : FAI on modified");
-	    break;
-	  }
-	case TAS_ON_MODIFIED:
-	  {
-	    PRINT(" ** Results from Core 0 : store on modified");
-	    uint32_t succ = test_ao_success * 100;
-	    PRINT(" ** Results from Core 1 : TAS on modified (%d%% successfull)", succ);
-	    break;
-	  }
-	case SWAP_ON_MODIFIED:
-	  {
-	    PRINT(" ** Results from Core 0 : store on modified");
-	    PRINT(" ** Results from Core 1 : SWAP on modified");
-	    break;
-	  }
-	case CAS_ON_SHARED:
-	  {
-	    PRINT(" ** Results from Core 0 : load from modified");
-	    PRINT(" ** Results from Core 1 : CAS on shared (100%% successfull)");
-	    PRINT(" ** Results from Core 2 : load from exlusive or shared");
-	    if (test_cores < 3)
-	      {
-		PRINT(" ** Need >=3 processes to achieve CAS_ON_SHARED");
-	      }
-	    break;
-	  }
-	case FAI_ON_SHARED:
-	  {
-	    PRINT(" ** Results from Core 0 : load from modified");
-	    PRINT(" ** Results from Core 1 : FAI on shared");
-	    PRINT(" ** Results from Core 2 : load from exlusive or shared");
-	    if (test_cores < 3)
-	      {
-		PRINT(" ** Need >=3 processes to achieve FAI_ON_SHARED");
-	      }
-	    break;
-	  }
-	case TAS_ON_SHARED:
-	  {
-	    PRINT(" ** Results from Core 0 : load from L1");
-	    uint32_t succ = test_ao_success * 100;
-	    PRINT(" ** Results from Core 1 : TAS on shared (%d%% successfull)", succ);
-	    PRINT(" ** Results from Core 2 : load from exlusive or shared");
-	    if (test_cores < 3)
-	      {
-		PRINT(" ** Need >=3 processes to achieve TAS_ON_SHARED");
-	      }
-	    break;
-	  }
-	case SWAP_ON_SHARED:
-	  {
-	    PRINT(" ** Results from Core 0 : load from modified");
-	    PRINT(" ** Results from Core 1 : SWAP on shared");
-	    PRINT(" ** Results from Core 2 : load from exlusive or shared");
-	    if (test_cores < 3)
-	      {
-		PRINT(" ** Need >=3 processes to achieve SWAP_ON_SHARED");
-	      }
-	    break;
-	  }
-	case CAS_CONCURRENT:
-	  {
-	    PRINT(" ** Results from Cores 0 & 1: CAS concurrent");
-	    break;
-	  }
-	case FAI_ON_INVALID:
-	  {
-	    PRINT(" ** Results from Core 0 : FAI on invalid");
-	    PRINT(" ** Results from Core 1 : cache line flush");
-	    break;
-	  }
-	case LOAD_FROM_L1:
-	  {
-	    PRINT(" ** Results from Core 0: load from L1");
-	    break;
-	  }
-	case LOAD_FROM_MEM_SIZE:
-	  {
-	    PRINT(" ** Results from Corees 0 & 1 & 2: load from random %zu KiB", test_mem_size / 1024);
-	    break;
-	  }
-	case LFENCE:
-	  {
-	    PRINT(" ** Results from Cores 0 & 1: load fence");
-	    break;
-	  }
-	case SFENCE:
-	  {
-	    PRINT(" ** Results from Cores 0 & 1: store fence");
-	    break;
-	  }
-	case MFENCE:
-	  {
-	    PRINT(" ** Results from Cores 0 & 1: full fence");
-	    break;
-	  }
-	case PROFILER:
-	  {
-	    PRINT(" ** Results from Cores 0 & 1: empty profiler region (start_prof - empty - stop_prof");
-	    break;
-	  }
-
-	default:
+	case 0:
+	  /* Flag is automatically set */
 	  break;
+	case 'h':
+	  printf("ccbench  Copyright (C) 2013  Vasileios Trigonakis <vasileios.trigonakis@epfl.ch>\n"
+		 "This program comes with ABSOLUTELY NO WARRANTY.\n"
+		 "This is free software, and you are welcome to redistribute it under certain conditions.\n\n"
+		 "ccbecnh is an application for measuring the cache-coherence latencies, i.e., the latencies of\n"
+		 "of loads, stores, CAS, FAI, TAS, and SWAP\n"
+		 "\n"
+		 "Usage:\n"
+		 "  ./ccbench [options...]\n"
+		 "\n"
+		 "Options:\n"
+		 "  -h, --help\n"
+		 "        Print this message\n"
+		 "  -c, --cores <int>\n"
+		 "        Number of cores to run the test on (default=" XSTR(DEFAULT_CORES) ")\n"
+		 "  -r, --repetitions <int>\n"
+		 "        Repetitions of the test case (default=" XSTR(DEFAULT_REPS) ")\n"
+		 "  -t, --test <int>\n"
+		 "        Test case to run (default=" XSTR(DEFAULT_TEST) "). See below for supported events\n"
+		 "  -x, --core1 <int>\n"
+		 "        1st core to use (default=" XSTR(DEFAULT_CORE1) ")\n"
+		 "  -y, --core2 <int>\n"
+		 "        2nd core to use (default=" XSTR(DEFAULT_CORE2) ")\n"
+		 "  -z, --core3 <int>\n"
+		 "        3rd core to use. Some (most) tests use only 2 cores (default=" XSTR(DEFAULT_CORE3) ")\n"
+		 "  -o, --core-others <int>\n"
+		 "        Offset for core that the processes with ID > 3 should bind (default=" XSTR(DEFAULT_CORE_OTHERS) ")\n"
+		 "  -f, --flush\n"
+		 "        Perform a cache line flush before the test (default=" XSTR(DEFAULT_FLUSH) ")\n"
+		 "  -s, --stride <int>\n"
+		 "        What stride size to use when accessing the cache line(s) (default=" XSTR(DEFAULT_STRIDE) ")\n"
+		 "        The application draws a random number X in the [0..(stride-1)] range and applies the target\n"
+		 "        operation on this random cache line. The operation is completed when X=0. The stride is used\n"
+		 "        in order to fool the hardware prefetchers that could hide the latency we want to measure.\n"
+		 "  -e, --fence <int>\n"
+		 "        What memory barrier (fence) lvl to use (default=" XSTR(DEFAULT_FENCE) ")\n"
+		 "        0 = no fences / 1 = load-store fences / 2 = full fences / 3 = load-none fences / 4 = none-store fences\n"
+		 "        5 = full-none fences / 6 = none-full fences / 7 = full-store fences / 8 = load-full fences \n"
+		 "  -m, --mem-size <int>\n"
+		 "        What memory size to use (in cache lines) (default=" XSTR(CACHE_LINE_NUM) ")\n"
+		 "  -u, --success\n"
+		 "        Make all atomic operations be successfull (e.g, TAS_ON_SHARED)\n"
+		 "  -v, --verbose\n"
+		 "        Verbose printing of results (default=" XSTR(DEFAULT_VERBOSE) ")\n"
+		 "  -p, --print <int>\n"
+		 "        If verbose, how many results to print (default=" XSTR(DEFAULT_PRINT) ")\n"
+		 "  -a, --duration <int>\n"
+		 "        runtime of the test(in seconds) (default=" XSTR(DEFAULT_DURATION) ")\n"
+		 "  -b, --threads <int>\n"
+		 "        number of threads to create (default=" XSTR(DEFAULT_THREADS) ")\n"
+		 );
+	  printf("Supported events: \n");
+	  int ar;
+	  for (ar = 0; ar < NUM_EVENTS; ar++)
+	    {
+	      printf("      %2d - %s\n", ar, moesi_type_des[ar]);
+	    }
+
+	  exit(0);
+	case 'c':
+	  test_cores = atoi(optarg);
+	  break;
+	case 'r':
+	  test_reps = atoi(optarg);
+	  break;
+	case 't':
+	  test_test = atoi(optarg);
+	  break;
+	case 'x':
+	  test_core1 = atoi(optarg);
+	  break;
+	case 'y':
+	  test_core2 = atoi(optarg);
+	  break;
+	case 'z':
+	  test_core3 = atoi(optarg);
+	  break;
+	case 'o':
+	  test_core_others = atoi(optarg);
+	  break;
+	case 'f':
+	  test_flush = 1;
+	  break;
+	case 's':
+	  test_stride = pow2roundup(atoi(optarg));
+	  break;
+	case 'e':
+	  test_fence = atoi(optarg);
+	  break;
+	case 'm':
+	  test_mem_size = parse_size(optarg);
+	  printf("Data size : %zu KiB\n", test_mem_size / 1024);
+	  break;
+	case 'u':
+	  test_ao_success = 1;
+	  break;
+	case 'v':
+	  test_verbose = 1;
+	  break;
+	case 'p':
+	  test_verbose = 1;
+	  test_print = atoi(optarg);
+	  break;
+	case 'a':
+	  test_duration = atoi(optarg);
+	  break;
+	case 'b':
+	  test_threads = atoi(optarg);
+	  break;
+	case '?':
+	  printf("Use -h or --help for help\n");
+	  exit(0);
+	default:
+	  exit(1);
 	}
     }
 
-  B0;
 
+  test_cache_line_num = test_mem_size / sizeof(cache_line_t);
 
-  if (ID < 3)
+  if ((test_test == STORE_ON_EXCLUSIVE || test_test == STORE_ON_INVALID || test_test == LOAD_FROM_INVALID
+       || test_test == LOAD_FROM_EXCLUSIVE || test_test == LOAD_FROM_SHARED) && !test_flush)
     {
-      PRINT(" value of cl is %-10u / sum is %llu", cache_line->word[0], (LLU) sum);
+      assert((test_reps * test_stride) <= test_cache_line_num);
     }
+
+  if (test_test != LOAD_FROM_MEM_SIZE)
+    {
+      assert(test_stride < test_cache_line_num);
+    }
+
+
+  ID = 0;
+  printf("test: %20s  / #cores: %d / #repetitions: %d / stride: %d (%u kiB)", moesi_type_des[test_test],
+	 test_cores, test_reps, test_stride, (64 * test_stride) / 1024);
+  if (test_flush)
+    {
+      printf(" / flush");
+    }
+
+  printf("  / fence: ");
+
+  switch (test_fence)
+    {
+    case 1:
+      printf(" load & store");
+      test_lfence = test_sfence = 1;
+      break;
+    case 2:
+      printf(" full");
+      test_lfence = test_sfence = 2;
+      break;
+    case 3:
+      printf(" load");
+      test_lfence = 1;
+      test_sfence = 0;
+      break;
+    case 4:
+      printf(" store");
+      test_lfence = 0;
+      test_sfence = 1;
+      break;
+    case 5:
+      printf(" full/none");
+      test_lfence = 2;
+      test_sfence = 0;
+      break;
+    case 6:
+      printf(" none/full");
+      test_lfence = 0;
+      test_sfence = 2;
+      break;
+    case 7:
+      printf(" full/store");
+      test_lfence = 2;
+      test_sfence = 1;
+      break;
+    case 8:
+      printf(" load/full");
+      test_lfence = 1;
+      test_sfence = 2;
+      break;
+    case 9:
+      printf(" double write");
+      test_lfence = 0;
+      test_sfence = 3;
+      break;
+    default:
+      printf(" none");
+      test_lfence = test_sfence = 0;
+      break;
+    }
+
+  printf("\n");
+
+
+  barriers_init(test_cores);
+  seeds = seed_rand();
+
+  cache_line = cache_line_open();
+#if defined(__tile__)
+  tmc_cmem_init(0);		/*   initialize shared memory */
+#endif  /* TILERA */
+
+  int stop __attribute__((aligned (64))) = 0;
+  ull total_executions = 0;
+  task_t *tasks = malloc(sizeof(task_t) * test_threads);
+  for (int i = 0; i < test_threads; i++) {
+        tasks[i].stop = &stop;
+
+        tasks[i].ncpu = test_cores;
+        tasks[i].id = i;
+
+        tasks[i].operation_executed = 0;
+        //printf("Task id = %d, priority = %d, ncpu = %d, atomics_executed = %llu\n", tasks[i].id, tasks[i].priority, tasks[i].ncpu, tasks[i].atomics_executed);
+  }
+  for (int i = 0; i < test_threads; i++) {
+        pthread_create(&tasks[i].thread, NULL, run_test, &tasks[i]);
+  }
+  sleep(test_duration);
+  stop = 1;
+
+  for (int i = 0; i < test_threads; i++) {
+      pthread_join(tasks[i].thread, NULL);
+      total_executions = total_executions + tasks[i].operation_executed;
+  }
+
+  printf("Total Exeuctions = %llu\n", total_executions);
+  printf("Average atomic execution time(ns) = %f\n", (1000.0 * 1000 * 1000 * test_duration) / total_executions);
+  printf("Per thread execution average = %f\n", (1.0 * total_executions)/test_threads);
+
   cache_line_close(ID, "cache_line");
   barriers_term(ID);
   return 0;
@@ -1468,7 +1136,7 @@ uint32_t
 cas(volatile cache_line_t* cl, volatile uint64_t reps)
 {
   uint8_t o = reps & 0x1;
-  uint8_t no = !o; 
+  uint8_t no = !o;
   volatile uint32_t r;
 
   PFDI(0);
@@ -1482,7 +1150,7 @@ uint32_t
 cas_no_pf(volatile cache_line_t* cl, volatile uint64_t reps)
 {
   uint8_t o = reps & 0x1;
-  uint8_t no = !o; 
+  uint8_t no = !o;
   volatile uint32_t r;
   r = CAS_U32(cl->word, o, no);
 
@@ -1493,7 +1161,7 @@ uint32_t
 cas_0_eventually(volatile cache_line_t* cl, volatile uint64_t reps)
 {
   uint8_t o = reps & 0x1;
-  uint8_t no = !o; 
+  uint8_t no = !o;
   volatile uint32_t r;
 
   uint32_t cln = 0;
@@ -2018,7 +1686,7 @@ parse_size(char* optarg)
   return test_mem_size_multi * atoi(optarg);
 }
 
-volatile cache_line_t* 
+volatile cache_line_t*
 cache_line_open()
 {
   uint64_t size = test_cache_line_num * sizeof(cache_line_t);
@@ -2030,7 +1698,7 @@ cache_line_open()
   /*   tmc_alloc_set_home(&alloc, MAP_CACHE_NO_LOCAL); */
   tmc_alloc_set_home(&alloc, TMC_ALLOC_HOME_HERE);
   /*   tmc_alloc_set_home(&alloc, TMC_ALLOC_HOME_TASK); */
-  
+
   volatile cache_line_t* cache_line = (volatile cache_line_t*) tmc_alloc_map(&alloc, size);
   if (cache_line == NULL)
     {
@@ -2047,9 +1715,9 @@ cache_line_open()
   sprintf(keyF, CACHE_LINE_MEM_FILE);
 
   int ssmpfd = shm_open(keyF, O_CREAT | O_EXCL | O_RDWR, S_IRWXU | S_IRWXG);
-  if (ssmpfd < 0) 
+  if (ssmpfd < 0)
     {
-      if (errno != EEXIST) 
+      if (errno != EEXIST)
 	{
 	  perror("In shm_open");
 	  exit(1);
@@ -2057,7 +1725,7 @@ cache_line_open()
 
 
       ssmpfd = shm_open(keyF, O_CREAT | O_RDWR, S_IRWXU | S_IRWXG);
-      if (ssmpfd < 0) 
+      if (ssmpfd < 0)
 	{
 	  perror("In shm_open");
 	  exit(1);
@@ -2071,7 +1739,7 @@ cache_line_open()
     }
   }
 
-  volatile cache_line_t* cache_line = 
+  volatile cache_line_t* cache_line =
     (volatile cache_line_t *) mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, ssmpfd, 0);
   if (cache_line == NULL)
     {
@@ -2123,9 +1791,9 @@ create_rand_list_cl(volatile uint64_t* list, size_t n)
     {
       used[idx] = 1;
       used_num++;
-      
+
       size_t nxt;
-      do 
+      do
 	{
 	  nxt = (my_random(s, s+1, s+2) % n) * per_cl;
 	}
@@ -2138,7 +1806,7 @@ create_rand_list_cl(volatile uint64_t* list, size_t n)
 
   free(s);
   free(used);
-} 
+}
 
 void
 cache_line_close(const uint32_t id, const char* name)
@@ -2154,4 +1822,3 @@ cache_line_close(const uint32_t id, const char* name)
   tmc_cmem_close();
 #endif
 }
-

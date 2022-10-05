@@ -1,4 +1,4 @@
-/*   
+/*
  *   File: ccbench.h
  *   Author: Vasileios Trigonakis <vasileios.trigonakis@epfl.ch>
  *   Description: definition of ccbench events and help functions
@@ -49,6 +49,10 @@
 #include <assert.h>
 #include <float.h>
 #include <getopt.h>
+#include <pthread.h>
+#include <sys/resource.h>
+#include <sys/syscall.h>
+#include <inttypes.h>
 
 #if defined(__amd64__)
 #  include <emmintrin.h>
@@ -57,7 +61,7 @@
 #  include <tmc/cmem.h>
 #  include <tmc/cpus.h>
 extern cpu_set_t cpus;
-#endif	
+#endif
 
 #if defined(PLATFORM_NUMA)
 #  include <numa.h>
@@ -160,7 +164,8 @@ const char* moesi_type_des[] =
 
 #define DEFAULT_CORES       2
 #define DEFAULT_REPS        10000
-#define DEFAULT_TIME        5
+#define DEFAULT_DURATION    5
+#define DEFAULT_THREADS     4
 #define DEFAULT_TEST        0
 #define DEFAULT_CORE1       0
 #define DEFAULT_CORE2       1
@@ -206,7 +211,7 @@ const char* moesi_type_des[] =
 #endif
 
 void
-set_cpu(int cpu) 
+set_cpu(int cpu)
 {
 #if defined(__sparc__)
   processor_bind(P_LWPID,P_MYID, cpu, NULL);
@@ -225,16 +230,23 @@ set_cpu(int cpu)
   cpu_set_t mask;
   CPU_ZERO(&mask);
   CPU_SET(cpu, &mask);
+  /*
   if (sched_setaffinity(0, sizeof(cpu_set_t), &mask) != 0) {
     printf("Problem with setting processor affinity: %s\n",
 	   strerror(errno));
     exit(3);
   }
+  */
+  int ret = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &mask);
+  if (ret != 0) {
+      perror("pthread_set_affinity_np");
+      exit(-1);
+  }
 #endif
 
 #ifdef OPTERON
   uint32_t numa_node = cpu/6;
-  numa_set_preferred(numa_node);  
+  numa_set_preferred(numa_node);
 #elif defined(XEON)
   uint32_t numa_node = 0;
   if (cpu == 0)
@@ -249,14 +261,14 @@ set_cpu(int cpu)
     {
       numa_node = cpu / 10;
     }
-  numa_set_preferred(numa_node);  
+  numa_set_preferred(numa_node);
 #elif defined(PLATFORM_NUMA)
   printf("* You need to define how cores correspond to mem nodes in ccbench.h\n");
-#endif 
-  
+#endif
+
 }
 
-inline void 
+inline void
 wait_cycles(volatile uint64_t cycles)
 {
   /* cycles >>= 1; */
@@ -268,12 +280,12 @@ wait_cycles(volatile uint64_t cycles)
 
   /* getticks needs to have a correction because the call itself takes a */
   /* significant number of cycles and skewes the measurement */
-static inline ticks getticks_correction_calc() 
+static inline ticks getticks_correction_calc()
 {
 #define GETTICKS_CALC_REPS 1000000
   ticks t_dur = 0;
   uint32_t i;
-  for (i = 0; i < GETTICKS_CALC_REPS; i++) 
+  for (i = 0; i < GETTICKS_CALC_REPS; i++)
     {
       ticks t_start = getticks();
       ticks t_end = getticks();
@@ -291,7 +303,7 @@ static inline ticks getticks_correction_calc()
     for (c = 0; c < num_cores; c++)		\
       {						\
 	if (id == c)				\
-	  {					
+	  {
 
 #define IN_ORDER_END				\
 	  }					\
@@ -300,8 +312,8 @@ static inline ticks getticks_correction_calc()
   }
 
 
-  static inline unsigned long* 
-  seed_rand() 
+  static inline unsigned long*
+  seed_rand()
   {
     unsigned long* seeds;
     seeds = (unsigned long*) malloc(3 * sizeof(unsigned long));
@@ -314,8 +326,8 @@ static inline ticks getticks_correction_calc()
 extern unsigned long* seeds;
   //Marsaglia's xorshf generator //period 2^96-1
 static inline unsigned long
-xorshf96(unsigned long* x, unsigned long* y, unsigned long* z) 
-{          
+xorshf96(unsigned long* x, unsigned long* y, unsigned long* z)
+{
   unsigned long t;
   (*x) ^= (*x) << 16;
   (*x) ^= (*x) >> 5;
