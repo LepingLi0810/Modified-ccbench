@@ -1,6 +1,7 @@
 ccbench
 =======
 Add time parameter and thread placement
+
 new options:
   -a, --duration <int>
         runtime of the test(in seconds) (default=5)
