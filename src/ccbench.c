@@ -398,6 +398,7 @@ void *run_test(void *arg) {
 	      default:
 		B1;			/* BARRIER 1 */
 		B2;			/* BARRIER 2 */
+		sum += load_0_eventually(cache_line, reps);
 		break;
 	      }
 	    break;
