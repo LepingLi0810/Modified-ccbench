@@ -129,7 +129,6 @@ void *run_test(void *arg) {
   B0;
   PFDINIT(test_reps);
   B0;
-  printf("cpu: %d\n", cpu);
   for (reps = 0; !*task->stop; reps++)
     {
       if (test_flush)
