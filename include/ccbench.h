@@ -183,21 +183,21 @@ const char* moesi_type_des[] =
 
 #define CACHE_LINE_MEM_FILE "/cache_line"
 
-#define B0(ID) _mm_mfence(); barrier_wait(0, (ID), test_cores); _mm_mfence();
-#define B1(ID) _mm_mfence(); barrier_wait(2, (ID), test_cores); _mm_mfence();
-#define B2(ID) _mm_mfence(); barrier_wait(3, (ID), test_cores); _mm_mfence();
-#define B3(ID) _mm_mfence(); barrier_wait(4, (ID), test_cores); _mm_mfence();
-#define B4(ID) _mm_mfence(); barrier_wait(5, (ID), test_cores); _mm_mfence();
-#define B5(ID) _mm_mfence(); barrier_wait(6, (ID), test_cores); _mm_mfence();
-#define B6(ID) _mm_mfence(); barrier_wait(7, (ID), test_cores); _mm_mfence();
-#define B7(ID) _mm_mfence(); barrier_wait(8, (ID), test_cores); _mm_mfence();
-#define B8(ID) _mm_mfence(); barrier_wait(9, (ID), test_cores); _mm_mfence();
-#define B9(ID) _mm_mfence(); barrier_wait(10, (ID), test_cores); _mm_mfence();
-#define B10(ID) _mm_mfence(); barrier_wait(11, (ID), test_cores); _mm_mfence();
-#define B11(ID) _mm_mfence(); barrier_wait(12, (ID), test_cores); _mm_mfence();
-#define B12(ID) _mm_mfence(); barrier_wait(13, (ID), test_cores); _mm_mfence();
-#define B13(ID) _mm_mfence(); barrier_wait(14, (ID), test_cores); _mm_mfence();
-#define B14(ID) _mm_mfence(); barrier_wait(15, (ID), test_cores); _mm_mfence();
+#define B0 _mm_mfence(); barrier_wait(0, (ID), test_cores); _mm_mfence();
+#define B1 _mm_mfence(); barrier_wait(2, (ID), test_cores); _mm_mfence();
+#define B2 _mm_mfence(); barrier_wait(3, (ID), test_cores); _mm_mfence();
+#define B3 _mm_mfence(); barrier_wait(4, (ID), test_cores); _mm_mfence();
+#define B4 _mm_mfence(); barrier_wait(5, (ID), test_cores); _mm_mfence();
+#define B5 _mm_mfence(); barrier_wait(6, (ID), test_cores); _mm_mfence();
+#define B6 _mm_mfence(); barrier_wait(7, (ID), test_cores); _mm_mfence();
+#define B7 _mm_mfence(); barrier_wait(8, (ID), test_cores); _mm_mfence();
+#define B8 _mm_mfence(); barrier_wait(9, (ID), test_cores); _mm_mfence();
+#define B9 _mm_mfence(); barrier_wait(10, (ID), test_cores); _mm_mfence();
+#define B10 _mm_mfence(); barrier_wait(11, (ID), test_cores); _mm_mfence();
+#define B11 _mm_mfence(); barrier_wait(12, (ID), test_cores); _mm_mfence();
+#define B12 _mm_mfence(); barrier_wait(13, (ID), test_cores); _mm_mfence();
+#define B13 _mm_mfence(); barrier_wait(14, (ID), test_cores); _mm_mfence();
+#define B14 _mm_mfence(); barrier_wait(15, (ID), test_cores); _mm_mfence();
 
 #define XSTR(s)                         STR(s)
 #define STR(s)                          #s
