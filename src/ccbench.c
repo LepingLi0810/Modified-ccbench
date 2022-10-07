@@ -48,6 +48,7 @@ uint32_t test_cores = DEFAULT_CORES;
 uint32_t test_reps = DEFAULT_REPS;
 uint32_t test_duration = DEFAULT_DURATION;
 uint32_t test_threads = DEFAULT_THREADS;
+uint32_t test_placement = DEFAULT_PLACEMENT;
 uint32_t test_core1 = DEFAULT_CORE1;
 uint32_t test_core2 = DEFAULT_CORE2;
 uint32_t test_core3 = DEFAULT_CORE3;
@@ -85,6 +86,10 @@ static uint32_t swap(volatile cache_line_t* cl, volatile uint64_t reps);
 static size_t parse_size(char* optarg);
 static void create_rand_list_cl(volatile uint64_t* list, size_t n);
 
+#define Hyperthreading 0
+#define Intra_socket 1
+#define Inter_socket 2
+
 volatile cache_line_t* cache_line;
 
 typedef struct {
@@ -101,26 +106,29 @@ void *run_test(void *arg) {
   task_t *task = (task_t *) arg;
   int cpu = 0;
   if (task->ncpu != 0) {
-        //cpu_set_t cpuset;
-        //CPU_ZERO(&cpuset);
-        /*for (int i = 0; i < task->ncpu; i++) {
-            if (i < 8 || i >= 24)
-                CPU_SET(i, &cpuset);
-            else if (i < 16)
-                CPU_SET(i+8, &cpuset);
-            else
-                CPU_SET(i-8, &cpuset);
-        }*/
-
-        if (task->id >= (test_threads / 2)) {
-                cpu = (task->id / (test_threads /2)) + 19 + (task->id % (test_threads / 2));
-                printf("%d thread = %d cpu\n", task->id, cpu);
-                //CPU_SET(cpu, &cpuset);
-        } else {
+         if (test_placement == Hyperthreading) {
+            if (task->id >= (test_threads / 2)) {
+                cpu = (task->id / (test_threads / 2)) + 19 + (task->id % (test_threads / 2));
+            } else {
                 cpu = task->id;
-                printf("%d thread = %d cpu\n", task->id, task->id);
+            }
+        } else if (test_placement == Intra_socket) {
+            if (task->id < 10) {
+                cpu = task->id;
+            } else {
+                cpu = task->id + 10;
+            }
+        } else if (test_placement == Inter_socket) {
+            if (task->id >= (test_threads / 2)) {
+                cpu = (task->id / (test_threads / 2)) + 9 + (task->id % (test_threads / 2));
+            } else {
+                cpu = task->id;
+            }
+        } else {
+            cpu = task->id;
         }
-        //CPU_SET(cpu, &cpuset);
+        printf("%d thread = %d cpu\n", task->id, cpu);
+
         set_cpu(cpu);
   }
   ull reps = 0;
