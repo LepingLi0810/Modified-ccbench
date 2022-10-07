@@ -129,6 +129,7 @@ void *run_test(void *arg) {
   B0;
   PFDINIT(test_reps);
   B0;
+  printf("cpu: %d\n", cpu);
   for (reps = 0; !*task->stop; reps++)
     {
       if (test_flush)
@@ -142,7 +143,7 @@ void *run_test(void *arg) {
 	{
 	case STORE_ON_MODIFIED: /* 0 */
 	  {  
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -162,7 +163,7 @@ void *run_test(void *arg) {
 	case STORE_ON_MODIFIED_NO_SYNC: /* 1 */
 	  {
 
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 	      case 1:
@@ -177,7 +178,7 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_EXCLUSIVE: /* 2 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -200,7 +201,7 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_SHARED:	/* 3 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -227,7 +228,7 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_OWNED_MINE: /* 4 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		B1;			/* BARRIER 1 */
@@ -250,7 +251,7 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_OWNED:	/* 5 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -273,7 +274,7 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_INVALID:	/* 6 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		B1;
@@ -300,7 +301,7 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_MODIFIED: /* 7 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -318,7 +319,7 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_EXCLUSIVE: /* 8 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -346,7 +347,7 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_SHARED:	/* 9 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -378,7 +379,7 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_OWNED:	/* 10 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -404,7 +405,7 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_INVALID:	/* 11 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		B1;			/* BARRIER 1 */
@@ -427,7 +428,7 @@ void *run_test(void *arg) {
 	  }
 	case CAS: /* 12 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		sum += cas_0_eventually(cache_line, reps);
@@ -446,7 +447,7 @@ void *run_test(void *arg) {
 	  }
 	case FAI: /* 13 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		sum += fai(cache_line, reps);
@@ -465,7 +466,7 @@ void *run_test(void *arg) {
 	  }
 	case TAS:		/* 14 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		sum += tas(cache_line, reps);
@@ -488,7 +489,7 @@ void *run_test(void *arg) {
 	  }
 	case SWAP: /* 15 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		sum += swap(cache_line, reps);
@@ -507,7 +508,7 @@ void *run_test(void *arg) {
 	  }
 	case CAS_ON_MODIFIED: /* 16 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -529,7 +530,7 @@ void *run_test(void *arg) {
 	  }
 	case FAI_ON_MODIFIED: /* 17 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -547,7 +548,7 @@ void *run_test(void *arg) {
 	  }
 	case TAS_ON_MODIFIED: /* 18 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -570,7 +571,7 @@ void *run_test(void *arg) {
 	  }
 	case SWAP_ON_MODIFIED: /* 19 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -588,7 +589,7 @@ void *run_test(void *arg) {
 	  }
 	case CAS_ON_SHARED: /* 20 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -615,7 +616,7 @@ void *run_test(void *arg) {
 	  }
 	case FAI_ON_SHARED: /* 21 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -642,7 +643,7 @@ void *run_test(void *arg) {
 	  }
 	case TAS_ON_SHARED: /* 22 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		if (test_ao_success)
@@ -677,7 +678,7 @@ void *run_test(void *arg) {
 	  }
 	case SWAP_ON_SHARED: /* 23 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -704,7 +705,7 @@ void *run_test(void *arg) {
 	  }
 	case CAS_CONCURRENT: /* 24 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 	      case 1:
@@ -718,7 +719,7 @@ void *run_test(void *arg) {
 	  }
 	case FAI_ON_INVALID:	/* 25 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		B1;		/* BARRIER 1 */
@@ -741,7 +742,7 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_L1:	/* 26 */
 	  {
-	    if (ID == 0)
+	    if (cpu == 0)
 	      {
 		sum += load_0(cache_line, reps);
 		sum += load_0(cache_line, reps);
@@ -751,14 +752,14 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_MEM_SIZE: /* 27 */
 	  {
-	    if (ID < 3)
+	    if (cpu < 3)
 	      {
 		sum += load_next(cl, reps);
 	      }
 	  }
 	  break;
 	case LFENCE:		/* 28 */
-	  if (ID < 2)
+	  if (cpu < 2)
 	    {
 	      PFDI(0);
 	      _mm_lfence();
@@ -766,7 +767,7 @@ void *run_test(void *arg) {
 	    }
 	  break;
 	case SFENCE:		/* 29 */
-	  if (ID < 2)
+	  if (cpu < 2)
 	    {
 	      PFDI(0);
 	      _mm_sfence();
@@ -774,7 +775,7 @@ void *run_test(void *arg) {
 	    }
 	  break;
 	case MFENCE:		/* 30 */
-	  if (ID < 2)
+	  if (cpu < 2)
 	    {
 	      PFDI(0);
 	      _mm_mfence();
@@ -782,7 +783,7 @@ void *run_test(void *arg) {
 	    }
 	  break;
 	case PAUSE:		/* 31 */
-	  if (ID < 2)
+	  if (cpu < 2)
 	    {
 	      PFDI(0);
 	      _mm_pause();
@@ -790,7 +791,7 @@ void *run_test(void *arg) {
 	    }
 	  break;
 	case NOP:		/* 32 */
-	  if (ID < 2)
+	  if (cpu < 2)
 	    {
 	      PFDI(0);
 	      asm volatile ("nop");
