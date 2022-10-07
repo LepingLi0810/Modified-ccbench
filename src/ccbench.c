@@ -113,7 +113,7 @@ void *run_test(void *arg) {
         }*/
 
         if (task->id >= (test_threads / 2)) {
-                cpu = (task->id / (test_threads /2)) + 5 + (task->id % (test_threads / 2));
+                cpu = (task->id / (test_threads /2)) + 19 + (task->id % (test_threads / 2));
                 printf("%d thread = %d cpu\n", task->id, cpu);
                 //CPU_SET(cpu, &cpuset);
         } else {
