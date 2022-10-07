@@ -890,7 +890,7 @@ main(int argc, char **argv)
   while(1) 
     {
       i = 0;
-      c = getopt_long(argc, argv, "hc:r:t:x:m:y:z:o:e:fvup:s:a:b:", long_options, &i);
+      c = getopt_long(argc, argv, "hc:r:t:x:m:y:z:o:e:fvup:s:a:b:d:", long_options, &i);
 
       if(c == -1)
 	break;
@@ -953,6 +953,8 @@ main(int argc, char **argv)
 		 "        runtime of the test(in seconds) (default=" XSTR(DEFAULT_DURATION) ")\n"
 		 "  -b, --threads <int>\n"
 		 "        number of threads to create (default=" XSTR(DEFAULT_THREADS) ")\n"
+		 "  -d, --placement <int>\n"
+                 "        how to place threads (default=" XSTR(DEFAULT_PLACEMENT) ")\n"
 		 );
 	  printf("Supported events: \n");
 	  int ar;
@@ -1012,6 +1014,9 @@ main(int argc, char **argv)
 	case 'b':
 	  test_threads = atoi(optarg);
 	  break;
+        case 'd':
+          test_placement = atoi(optarg);
+          break;
 	case '?':
 	  printf("Use -h or --help for help\n");
 	  exit(0);
