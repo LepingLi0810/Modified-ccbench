@@ -1,4 +1,4 @@
-/*
+/*   
  *   File: ccbench.c
  *   Author: Vasileios Trigonakis <vasileios.trigonakis@epfl.ch>
  *   Description: the main functionality of ccbench
@@ -129,6 +129,7 @@ void *run_test(void *arg) {
   B0;
   PFDINIT(test_reps);
   B0;
+  printf("cpu: %d\n", cpu);
   for (reps = 0; !*task->stop; reps++)
     {
       if (test_flush)
@@ -141,8 +142,8 @@ void *run_test(void *arg) {
       switch (test_test)
 	{
 	case STORE_ON_MODIFIED: /* 0 */
-	  {
-	    switch (ID)
+	  {  
+	    switch (cpu)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -162,7 +163,7 @@ void *run_test(void *arg) {
 	case STORE_ON_MODIFIED_NO_SYNC: /* 1 */
 	  {
 
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 	      case 1:
@@ -177,7 +178,7 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_EXCLUSIVE: /* 2 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -200,7 +201,7 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_SHARED:	/* 3 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -227,7 +228,7 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_OWNED_MINE: /* 4 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		B1;			/* BARRIER 1 */
@@ -250,7 +251,7 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_OWNED:	/* 5 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -273,7 +274,7 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_INVALID:	/* 6 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		B1;
@@ -300,11 +301,11 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_MODIFIED: /* 7 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
-		B1;
+		B1;		
 		break;
 	      case 1:
 		B1;			/* BARRIER 1 */
@@ -318,7 +319,7 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_EXCLUSIVE: /* 8 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -346,7 +347,7 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_SHARED:	/* 9 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -378,7 +379,7 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_OWNED:	/* 10 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -398,14 +399,13 @@ void *run_test(void *arg) {
 	      default:
 		B1;			/* BARRIER 1 */
 		B2;			/* BARRIER 2 */
-		sum += load_0_eventually(cache_line, reps);
 		break;
 	      }
 	    break;
 	  }
 	case LOAD_FROM_INVALID:	/* 11 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		B1;			/* BARRIER 1 */
@@ -428,7 +428,7 @@ void *run_test(void *arg) {
 	  }
 	case CAS: /* 12 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		sum += cas_0_eventually(cache_line, reps);
@@ -447,7 +447,7 @@ void *run_test(void *arg) {
 	  }
 	case FAI: /* 13 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		sum += fai(cache_line, reps);
@@ -466,7 +466,7 @@ void *run_test(void *arg) {
 	  }
 	case TAS:		/* 14 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		sum += tas(cache_line, reps);
@@ -489,7 +489,7 @@ void *run_test(void *arg) {
 	  }
 	case SWAP: /* 15 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		sum += swap(cache_line, reps);
@@ -508,7 +508,7 @@ void *run_test(void *arg) {
 	  }
 	case CAS_ON_MODIFIED: /* 16 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -530,7 +530,7 @@ void *run_test(void *arg) {
 	  }
 	case FAI_ON_MODIFIED: /* 17 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -548,7 +548,7 @@ void *run_test(void *arg) {
 	  }
 	case TAS_ON_MODIFIED: /* 18 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -571,7 +571,7 @@ void *run_test(void *arg) {
 	  }
 	case SWAP_ON_MODIFIED: /* 19 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -589,7 +589,7 @@ void *run_test(void *arg) {
 	  }
 	case CAS_ON_SHARED: /* 20 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -616,7 +616,7 @@ void *run_test(void *arg) {
 	  }
 	case FAI_ON_SHARED: /* 21 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -643,7 +643,7 @@ void *run_test(void *arg) {
 	  }
 	case TAS_ON_SHARED: /* 22 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		if (test_ao_success)
@@ -678,7 +678,7 @@ void *run_test(void *arg) {
 	  }
 	case SWAP_ON_SHARED: /* 23 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -705,7 +705,7 @@ void *run_test(void *arg) {
 	  }
 	case CAS_CONCURRENT: /* 24 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 	      case 1:
@@ -719,7 +719,7 @@ void *run_test(void *arg) {
 	  }
 	case FAI_ON_INVALID:	/* 25 */
 	  {
-	    switch (ID)
+	    switch (cpu)
 	      {
 	      case 0:
 		B1;		/* BARRIER 1 */
@@ -742,7 +742,7 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_L1:	/* 26 */
 	  {
-	    if (ID == 0)
+	    if (cpu == 0)
 	      {
 		sum += load_0(cache_line, reps);
 		sum += load_0(cache_line, reps);
@@ -752,14 +752,14 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_MEM_SIZE: /* 27 */
 	  {
-	    if (ID < 3)
+	    if (cpu < 3)
 	      {
 		sum += load_next(cl, reps);
 	      }
 	  }
 	  break;
 	case LFENCE:		/* 28 */
-	  if (ID < 2)
+	  if (cpu < 2)
 	    {
 	      PFDI(0);
 	      _mm_lfence();
@@ -767,7 +767,7 @@ void *run_test(void *arg) {
 	    }
 	  break;
 	case SFENCE:		/* 29 */
-	  if (ID < 2)
+	  if (cpu < 2)
 	    {
 	      PFDI(0);
 	      _mm_sfence();
@@ -775,7 +775,7 @@ void *run_test(void *arg) {
 	    }
 	  break;
 	case MFENCE:		/* 30 */
-	  if (ID < 2)
+	  if (cpu < 2)
 	    {
 	      PFDI(0);
 	      _mm_mfence();
@@ -783,7 +783,7 @@ void *run_test(void *arg) {
 	    }
 	  break;
 	case PAUSE:		/* 31 */
-	  if (ID < 2)
+	  if (cpu < 2)
 	    {
 	      PFDI(0);
 	      _mm_pause();
@@ -791,7 +791,7 @@ void *run_test(void *arg) {
 	    }
 	  break;
 	case NOP:		/* 32 */
-	  if (ID < 2)
+	  if (cpu < 2)
 	    {
 	      PFDI(0);
 	      asm volatile ("nop");
@@ -838,7 +838,7 @@ void *run_test(void *arg) {
 
 
 int
-main(int argc, char **argv)
+main(int argc, char **argv) 
 {
 
   /* before doing any allocations */
@@ -855,7 +855,7 @@ main(int argc, char **argv)
   set_cpu(0);
 #endif
 
-  struct option long_options[] =
+  struct option long_options[] = 
     {
       // These options don't set a flag
       {"help",                      no_argument,       NULL, 'h'},
@@ -880,7 +880,7 @@ main(int argc, char **argv)
 
   int i;
   char c;
-  while(1)
+  while(1) 
     {
       i = 0;
       c = getopt_long(argc, argv, "hc:r:t:x:m:y:z:o:e:fvup:s:a:b:", long_options, &i);
@@ -891,7 +891,7 @@ main(int argc, char **argv)
       if(c == 0 && long_options[i].flag == 0)
 	c = long_options[i].val;
 
-      switch(c)
+      switch(c) 
 	{
 	case 0:
 	  /* Flag is automatically set */
@@ -1029,7 +1029,7 @@ main(int argc, char **argv)
 
 
   ID = 0;
-  printf("test: %20s  / #cores: %d / #repetitions: %d / stride: %d (%u kiB)", moesi_type_des[test_test],
+  printf("test: %20s  / #cores: %d / #repetitions: %d / stride: %d (%u kiB)", moesi_type_des[test_test], 
 	 test_cores, test_reps, test_stride, (64 * test_stride) / 1024);
   if (test_flush)
     {
@@ -1077,7 +1077,7 @@ main(int argc, char **argv)
       printf(" load/full");
       test_lfence = 1;
       test_sfence = 2;
-      break;
+      break;    
     case 9:
       printf(" double write");
       test_lfence = 0;
@@ -1126,7 +1126,7 @@ main(int argc, char **argv)
   printf("Total Exeuctions = %llu\n", total_executions);
   printf("Average atomic execution time(ns) = %f\n", (1000.0 * 1000 * 1000 * test_duration) / total_executions);
   printf("Per thread execution average = %f\n", (1.0 * total_executions)/test_threads);
-
+  
   cache_line_close(ID, "cache_line");
   barriers_term(ID);
   return 0;
@@ -1137,7 +1137,7 @@ uint32_t
 cas(volatile cache_line_t* cl, volatile uint64_t reps)
 {
   uint8_t o = reps & 0x1;
-  uint8_t no = !o;
+  uint8_t no = !o; 
   volatile uint32_t r;
 
   PFDI(0);
@@ -1151,7 +1151,7 @@ uint32_t
 cas_no_pf(volatile cache_line_t* cl, volatile uint64_t reps)
 {
   uint8_t o = reps & 0x1;
-  uint8_t no = !o;
+  uint8_t no = !o; 
   volatile uint32_t r;
   r = CAS_U32(cl->word, o, no);
 
@@ -1162,7 +1162,7 @@ uint32_t
 cas_0_eventually(volatile cache_line_t* cl, volatile uint64_t reps)
 {
   uint8_t o = reps & 0x1;
-  uint8_t no = !o;
+  uint8_t no = !o; 
   volatile uint32_t r;
 
   uint32_t cln = 0;
@@ -1687,7 +1687,7 @@ parse_size(char* optarg)
   return test_mem_size_multi * atoi(optarg);
 }
 
-volatile cache_line_t*
+volatile cache_line_t* 
 cache_line_open()
 {
   uint64_t size = test_cache_line_num * sizeof(cache_line_t);
@@ -1699,7 +1699,7 @@ cache_line_open()
   /*   tmc_alloc_set_home(&alloc, MAP_CACHE_NO_LOCAL); */
   tmc_alloc_set_home(&alloc, TMC_ALLOC_HOME_HERE);
   /*   tmc_alloc_set_home(&alloc, TMC_ALLOC_HOME_TASK); */
-
+  
   volatile cache_line_t* cache_line = (volatile cache_line_t*) tmc_alloc_map(&alloc, size);
   if (cache_line == NULL)
     {
@@ -1716,9 +1716,9 @@ cache_line_open()
   sprintf(keyF, CACHE_LINE_MEM_FILE);
 
   int ssmpfd = shm_open(keyF, O_CREAT | O_EXCL | O_RDWR, S_IRWXU | S_IRWXG);
-  if (ssmpfd < 0)
+  if (ssmpfd < 0) 
     {
-      if (errno != EEXIST)
+      if (errno != EEXIST) 
 	{
 	  perror("In shm_open");
 	  exit(1);
@@ -1726,7 +1726,7 @@ cache_line_open()
 
 
       ssmpfd = shm_open(keyF, O_CREAT | O_RDWR, S_IRWXU | S_IRWXG);
-      if (ssmpfd < 0)
+      if (ssmpfd < 0) 
 	{
 	  perror("In shm_open");
 	  exit(1);
@@ -1740,7 +1740,7 @@ cache_line_open()
     }
   }
 
-  volatile cache_line_t* cache_line =
+  volatile cache_line_t* cache_line = 
     (volatile cache_line_t *) mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, ssmpfd, 0);
   if (cache_line == NULL)
     {
@@ -1792,9 +1792,9 @@ create_rand_list_cl(volatile uint64_t* list, size_t n)
     {
       used[idx] = 1;
       used_num++;
-
+      
       size_t nxt;
-      do
+      do 
 	{
 	  nxt = (my_random(s, s+1, s+2) % n) * per_cl;
 	}
@@ -1807,7 +1807,7 @@ create_rand_list_cl(volatile uint64_t* list, size_t n)
 
   free(s);
   free(used);
-}
+} 
 
 void
 cache_line_close(const uint32_t id, const char* name)
