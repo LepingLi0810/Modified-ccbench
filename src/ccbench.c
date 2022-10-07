@@ -126,10 +126,10 @@ void *run_test(void *arg) {
   ull reps = 0;
   uint64_t sum = 0;
   volatile uint64_t* cl = (volatile uint64_t*) cache_line;
-  B0(task->id);
+  B0;
   PFDINIT(test_reps);
-  B0(task->id);
-  while(!*task->stop)
+  B0;
+  for (reps = 0; !*task->stop; reps++)
     {
       if (test_flush)
 	{
@@ -137,23 +137,23 @@ void *run_test(void *arg) {
 	  _mm_clflush((void*) cache_line);
 	  _mm_mfence();
 	}
-      B0(task->id);			/* BARRIER 0 */
+      B0;			/* BARRIER 0 */
       switch (test_test)
 	{
 	case STORE_ON_MODIFIED: /* 0 */
 	  {  
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		break;
 	      case 1:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		store_0_eventually(cache_line, reps);
 		break;
 	      default:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		store_0_eventually(cache_line, reps);
 		break;
 	      }
@@ -162,7 +162,7 @@ void *run_test(void *arg) {
 	case STORE_ON_MODIFIED_NO_SYNC: /* 1 */
 	  {
 
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
 	      case 1:
@@ -177,18 +177,18 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_EXCLUSIVE: /* 2 */
 	  {
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		break;
 	      case 1:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		store_0_eventually(cache_line, reps);
 		break;
 	      default:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		break;
 	      }
 
@@ -200,83 +200,83 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_SHARED:	/* 3 */
 	  {
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
-		B1(task->id);			/* BARRIER 1 */
-		B2(task->id);			/* BARRIER 2 */
+		B1;			/* BARRIER 1 */
+		B2;			/* BARRIER 2 */
 		break;
 	      case 1:
-		B1(task->id);			/* BARRIER 1 */
-		B2(task->id);			/* BARRIER 2 */
+		B1;			/* BARRIER 1 */
+		B2;			/* BARRIER 2 */
 		store_0_eventually(cache_line, reps);
 		break;
 	      case 2:
-		B1(task->id);			/* BARRIER 1 */
+		B1;			/* BARRIER 1 */
 		sum += load_0_eventually(cache_line, reps);
-		B2(task->id);			/* BARRIER 2 */
+		B2;			/* BARRIER 2 */
 		break;
 	      default:
-		B1(task->id);			/* BARRIER 1 */
+		B1;			/* BARRIER 1 */
 		sum += load_0_eventually_no_pf(cache_line);
-		B2(task->id);			/* BARRIER 2 */
+		B2;			/* BARRIER 2 */
 		break;
 	      }
 	    break;
 	  }
 	case STORE_ON_OWNED_MINE: /* 4 */
 	  {
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
-		B1(task->id);			/* BARRIER 1 */
+		B1;			/* BARRIER 1 */
 		sum += load_0_eventually(cache_line, reps);
-		B2(task->id);			/* BARRIER 2 */
+		B2;			/* BARRIER 2 */
 		break;
 	      case 1:
 		store_0_eventually(cache_line, reps);
-		B1(task->id);			/* BARRIER 1 */
-		B2(task->id);			/* BARRIER 2 */
+		B1;			/* BARRIER 1 */
+		B2;			/* BARRIER 2 */
 		store_0_eventually_pfd1(cache_line, reps);
 		break;
 	      default:
-		B1(task->id);			/* BARRIER 1 */
+		B1;			/* BARRIER 1 */
 		sum += load_0_eventually_no_pf(cache_line);
-		B2(task->id);			/* BARRIER 2 */
+		B2;			/* BARRIER 2 */
 		break;
 	      }
 	    break;
 	  }
 	case STORE_ON_OWNED:	/* 5 */
 	  {
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
-		B1(task->id);			/* BARRIER 1 */
-		B2(task->id);			/* BARRIER 2 */
+		B1;			/* BARRIER 1 */
+		B2;			/* BARRIER 2 */
 		break;
 	      case 1:
-		B1(task->id);			/* BARRIER 1 */
+		B1;			/* BARRIER 1 */
 		sum += load_0_eventually(cache_line, reps);
-		B2(task->id);			/* BARRIER 2 */
+		B2;			/* BARRIER 2 */
 		store_0_eventually_pfd1(cache_line, reps);
 		break;
 	      default:
-		B1(task->id);			/* BARRIER 1 */
+		B1;			/* BARRIER 1 */
 		sum += load_0_eventually_no_pf(cache_line);
-		B2(task->id);			/* BARRIER 2 */
+		B2;			/* BARRIER 2 */
 		break;
 	      }
 	    break;
 	  }
 	case STORE_ON_INVALID:	/* 6 */
 	  {
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
-		B1(task->id);
+		B1;
 		/* store_0_eventually(cache_line, reps); */
 		store_0(cache_line, reps);
 		if (!test_flush)
@@ -290,39 +290,39 @@ void *run_test(void *arg) {
 		  {
 		    cache_line += test_stride;
 		  }
-		B1(task->id);
+		B1;
 		break;
 	      default:
-		B1(task->id);
+		B1;
 		break;
 	      }
 	    break;
 	  }
 	case LOAD_FROM_MODIFIED: /* 7 */
 	  {
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
-		B1(task->id);		
+		B1;		
 		break;
 	      case 1:
-		B1(task->id);			/* BARRIER 1 */
+		B1;			/* BARRIER 1 */
 		sum += load_0_eventually(cache_line, reps);
 		break;
 	      default:
-		B1(task->id);
+		B1;
 		break;
 	      }
 	    break;
 	  }
 	case LOAD_FROM_EXCLUSIVE: /* 8 */
 	  {
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
-		B1(task->id);			/* BARRIER 1 */
+		B1;			/* BARRIER 1 */
 
 		if (!test_flush)
 		  {
@@ -330,7 +330,7 @@ void *run_test(void *arg) {
 		  }
 		break;
 	      case 1:
-		B1(task->id);			/* BARRIER 1 */
+		B1;			/* BARRIER 1 */
 		sum += load_0_eventually(cache_line, reps);
 
 		if (!test_flush)
@@ -339,34 +339,34 @@ void *run_test(void *arg) {
 		  }
 		break;
 	      default:
-		B1(task->id);			/* BARRIER 1 */
+		B1;			/* BARRIER 1 */
 		break;
 	      }
 	    break;
 	  }
 	case LOAD_FROM_SHARED:	/* 9 */
 	  {
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
-		B1(task->id);			/* BARRIER 1 */
-		B2(task->id);			/* BARRIER 2 */
+		B1;			/* BARRIER 1 */
+		B2;			/* BARRIER 2 */
 		break;
 	      case 1:
-		B1(task->id);			/* BARRIER 1 */
+		B1;			/* BARRIER 1 */
 		sum += load_0_eventually(cache_line, reps);
-		B2(task->id);			/* BARRIER 2 */
+		B2;			/* BARRIER 2 */
 		break;
 	      case 2:
-		B1(task->id);			/* BARRIER 1 */
-		B2(task->id);			/* BARRIER 2 */
+		B1;			/* BARRIER 1 */
+		B2;			/* BARRIER 2 */
 		sum += load_0_eventually(cache_line, reps);
 		break;
 	      default:
-		B1(task->id);			/* BARRIER 1 */
+		B1;			/* BARRIER 1 */
 		sum += load_0_eventually_no_pf(cache_line);
-		B2(task->id);			/* BARRIER 2 */
+		B2;			/* BARRIER 2 */
 		break;
 	      }
 
@@ -378,44 +378,44 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_OWNED:	/* 10 */
 	  {
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
-		B1(task->id);			/* BARRIER 1 */
-		B2(task->id);			/* BARRIER 2 */
+		B1;			/* BARRIER 1 */
+		B2;			/* BARRIER 2 */
 		break;
 	      case 1:
-		B1(task->id);			/* BARRIER 1 */
+		B1;			/* BARRIER 1 */
 		sum += load_0_eventually(cache_line, reps);
-		B2(task->id);			/* BARRIER 2 */
+		B2;			/* BARRIER 2 */
 		break;
 	      case 2:
-		B1(task->id);			/* BARRIER 1 */
-		B2(task->id);			/* BARRIER 2 */
+		B1;			/* BARRIER 1 */
+		B2;			/* BARRIER 2 */
 		sum += load_0_eventually(cache_line, reps);
 		break;
 	      default:
-		B1(task->id);			/* BARRIER 1 */
-		B2(task->id);			/* BARRIER 2 */
+		B1;			/* BARRIER 1 */
+		B2;			/* BARRIER 2 */
 		break;
 	      }
 	    break;
 	  }
 	case LOAD_FROM_INVALID:	/* 11 */
 	  {
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
-		B1(task->id);			/* BARRIER 1 */
+		B1;			/* BARRIER 1 */
 		sum += load_0_eventually(cache_line, reps); 		/* sum += load_0(cache_line, reps); */
 		break;
 	      case 1:
 		invalidate(cache_line, 0, reps);
-		B1(task->id);			/* BARRIER 1 */
+		B1;			/* BARRIER 1 */
 		break;
 	      default:
-		B1(task->id);			/* BARRIER 1 */
+		B1;			/* BARRIER 1 */
 		break;
 	      }
 
@@ -427,18 +427,18 @@ void *run_test(void *arg) {
 	  }
 	case CAS: /* 12 */
 	  {
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
 		sum += cas_0_eventually(cache_line, reps);
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		break;
 	      case 1:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		sum += cas_0_eventually(cache_line, reps);
 		break;
 	      default:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		sum += cas_0_eventually(cache_line, reps);
 		break;
 	      }
@@ -446,18 +446,18 @@ void *run_test(void *arg) {
 	  }
 	case FAI: /* 13 */
 	  {
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
 		sum += fai(cache_line, reps);
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		break;
 	      case 1:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		sum += fai(cache_line, reps);
 		break;
 	      default:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		sum += fai(cache_line, reps);
 		break;
 	      }
@@ -465,49 +465,49 @@ void *run_test(void *arg) {
 	  }
 	case TAS:		/* 14 */
 	  {
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
 		sum += tas(cache_line, reps);
-		B1(task->id);		/* BARRIER 1 */
-		B2(task->id);		/* BARRIER 2 */
+		B1;		/* BARRIER 1 */
+		B2;		/* BARRIER 2 */
 		break;
 	      case 1:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		sum += tas(cache_line, reps);
 		_mm_mfence();
 		cache_line->word[0] = 0;
-		B2(task->id);		/* BARRIER 2 */
+		B2;		/* BARRIER 2 */
 		break;
 	      default:
-		B1(task->id);		/* BARRIER 1 */
-		B2(task->id);		/* BARRIER 2 */
+		B1;		/* BARRIER 1 */
+		B2;		/* BARRIER 2 */
 		break;
 	      }
 	    break;
 	  }
 	case SWAP: /* 15 */
 	  {
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
 		sum += swap(cache_line, reps);
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		break;
 	      case 1:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		sum += swap(cache_line, reps);
 		break;
 	      default:
 	        sum += swap(cache_line, reps);
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		break;
 	      }
 	    break;
 	  }
 	case CAS_ON_MODIFIED: /* 16 */
 	  {
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -515,39 +515,39 @@ void *run_test(void *arg) {
 		  {
 		    cache_line->word[0] = reps & 0x01;
 		  }
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		break;
 	      case 1:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		sum += cas_0_eventually(cache_line, reps);
 		break;
 	      default:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		break;
 	      }
 	    break;
 	  }
 	case FAI_ON_MODIFIED: /* 17 */
 	  {
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		break;
 	      case 1:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		sum += fai(cache_line, reps);
 		break;
 	      default:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		break;
 	      }
 	    break;
 	  }
 	case TAS_ON_MODIFIED: /* 18 */
 	  {
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -556,93 +556,93 @@ void *run_test(void *arg) {
 		    cache_line->word[0] = 0xFFFFFFFF;
 		    _mm_mfence();
 		  }
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		break;
 	      case 1:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		sum += tas(cache_line, reps);
 		break;
 	      default:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		break;
 	      }
 	    break;
 	  }
 	case SWAP_ON_MODIFIED: /* 19 */
 	  {
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		break;
 	      case 1:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		sum += swap(cache_line, reps);
 		break;
 	      default:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		break;
 	      }
 	    break;
 	  }
 	case CAS_ON_SHARED: /* 20 */
 	  {
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
-		B1(task->id);		/* BARRIER 1 */
-		B2(task->id);		/* BARRIER 2 */
+		B1;		/* BARRIER 1 */
+		B2;		/* BARRIER 2 */
 		break;
 	      case 1:
-		B1(task->id);		/* BARRIER 1 */
-		B2(task->id);		/* BARRIER 2 */
+		B1;		/* BARRIER 1 */
+		B2;		/* BARRIER 2 */
 		sum += cas_0_eventually(cache_line, reps);
 		break;
 	      case 2:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		sum += load_0_eventually(cache_line, reps);
-		B2(task->id);		/* BARRIER 2 */
+		B2;		/* BARRIER 2 */
 		break;
 	      default:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		sum += load_0_eventually_no_pf(cache_line);
-		B2(task->id);			/* BARRIER 2 */
+		B2;			/* BARRIER 2 */
 		break;
 	      }
 	    break;
 	  }
 	case FAI_ON_SHARED: /* 21 */
 	  {
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
-		B1(task->id);		/* BARRIER 1 */
-		B2(task->id);		/* BARRIER 2 */
+		B1;		/* BARRIER 1 */
+		B2;		/* BARRIER 2 */
 		break;
 	      case 1:
-		B1(task->id);		/* BARRIER 1 */
-		B2(task->id);		/* BARRIER 2 */
+		B1;		/* BARRIER 1 */
+		B2;		/* BARRIER 2 */
 		sum += fai(cache_line, reps);
 		break;
 	      case 2:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		sum += load_0_eventually(cache_line, reps);
-		B2(task->id);		/* BARRIER 2 */
+		B2;		/* BARRIER 2 */
 		break;
 	      default:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		sum += load_0_eventually_no_pf(cache_line);
-		B2(task->id);			/* BARRIER 2 */
+		B2;			/* BARRIER 2 */
 		break;
 	      }
 	    break;
 	  }
 	case TAS_ON_SHARED: /* 22 */
 	  {
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
 		if (test_ao_success)
@@ -654,57 +654,57 @@ void *run_test(void *arg) {
 		    cache_line->word[0] = 0xFFFFFFFF;
 		  }
 		sum += load_0_eventually(cache_line, reps);
-		B1(task->id);		/* BARRIER 1 */
-		B2(task->id);		/* BARRIER 2 */
+		B1;		/* BARRIER 1 */
+		B2;		/* BARRIER 2 */
 		break;
 	      case 1:
-		B1(task->id);		/* BARRIER 1 */
-		B2(task->id);		/* BARRIER 2 */
+		B1;		/* BARRIER 1 */
+		B2;		/* BARRIER 2 */
 		sum += tas(cache_line, reps);
 		break;
 	      case 2:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		sum += load_0_eventually(cache_line, reps);
-		B2(task->id);		/* BARRIER 2 */
+		B2;		/* BARRIER 2 */
 		break;
 	      default:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		sum += load_0_eventually_no_pf(cache_line);
-		B2(task->id);			/* BARRIER 2 */
+		B2;			/* BARRIER 2 */
 		break;
 	      }
 	    break;
 	  }
 	case SWAP_ON_SHARED: /* 23 */
 	  {
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
-		B1(task->id);		/* BARRIER 1 */
-		B2(task->id);		/* BARRIER 2 */
+		B1;		/* BARRIER 1 */
+		B2;		/* BARRIER 2 */
 		break;
 	      case 1:
-		B1(task->id);		/* BARRIER 1 */
-		B2(task->id);		/* BARRIER 2 */
+		B1;		/* BARRIER 1 */
+		B2;		/* BARRIER 2 */
 		sum += swap(cache_line, reps);
 		break;
 	      case 2:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		sum += load_0_eventually(cache_line, reps);
-		B2(task->id);		/* BARRIER 2 */
+		B2;		/* BARRIER 2 */
 		break;
 	      default:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		sum += load_0_eventually_no_pf(cache_line);
-		B2(task->id);			/* BARRIER 2 */
+		B2;			/* BARRIER 2 */
 		break;
 	      }
 	    break;
 	  }
 	case CAS_CONCURRENT: /* 24 */
 	  {
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
 	      case 1:
@@ -718,18 +718,18 @@ void *run_test(void *arg) {
 	  }
 	case FAI_ON_INVALID:	/* 25 */
 	  {
-	    switch (task->id)
+	    switch (ID)
 	      {
 	      case 0:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		sum += fai(cache_line, reps);
 		break;
 	      case 1:
 		invalidate(cache_line, 0, reps);
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		break;
 	      default:
-		B1(task->id);		/* BARRIER 1 */
+		B1;		/* BARRIER 1 */
 		break;
 	      }
 
@@ -741,7 +741,7 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_L1:	/* 26 */
 	  {
-	    if (task->id == 0)
+	    if (ID == 0)
 	      {
 		sum += load_0(cache_line, reps);
 		sum += load_0(cache_line, reps);
@@ -751,14 +751,14 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_MEM_SIZE: /* 27 */
 	  {
-	    if (task->id < 3)
+	    if (ID < 3)
 	      {
 		sum += load_next(cl, reps);
 	      }
 	  }
 	  break;
 	case LFENCE:		/* 28 */
-	  if (task->id < 2)
+	  if (ID < 2)
 	    {
 	      PFDI(0);
 	      _mm_lfence();
@@ -766,7 +766,7 @@ void *run_test(void *arg) {
 	    }
 	  break;
 	case SFENCE:		/* 29 */
-	  if (task->id < 2)
+	  if (ID < 2)
 	    {
 	      PFDI(0);
 	      _mm_sfence();
@@ -774,7 +774,7 @@ void *run_test(void *arg) {
 	    }
 	  break;
 	case MFENCE:		/* 30 */
-	  if (task->id < 2)
+	  if (ID < 2)
 	    {
 	      PFDI(0);
 	      _mm_mfence();
@@ -782,7 +782,7 @@ void *run_test(void *arg) {
 	    }
 	  break;
 	case PAUSE:		/* 31 */
-	  if (task->id < 2)
+	  if (ID < 2)
 	    {
 	      PFDI(0);
 	      _mm_pause();
@@ -790,7 +790,7 @@ void *run_test(void *arg) {
 	    }
 	  break;
 	case NOP:		/* 32 */
-	  if (task->id < 2)
+	  if (ID < 2)
 	    {
 	      PFDI(0);
 	      asm volatile ("nop");
@@ -805,12 +805,10 @@ void *run_test(void *arg) {
 	  break;
 	}
 
-      B3(task->id);			/* BARRIER 3 */
-      reps++;
+      B3;			/* BARRIER 3 */
     }
 
-  cache_line_close(task->id, "cache_line");
-  barriers_term(task->id);
+
   task->operation_executed = reps;
   pid_t tid = gettid();
   pid_t pid = getpid();
@@ -1029,6 +1027,7 @@ main(int argc, char **argv)
     }
 
 
+  ID = 0;
   printf("test: %20s  / #cores: %d / #repetitions: %d / stride: %d (%u kiB)", moesi_type_des[test_test], 
 	 test_cores, test_reps, test_stride, (64 * test_stride) / 1024);
   if (test_flush)
@@ -1127,7 +1126,8 @@ main(int argc, char **argv)
   printf("Average atomic execution time(ns) = %f\n", (1000.0 * 1000 * 1000 * test_duration) / total_executions);
   printf("Per thread execution average = %f\n", (1.0 * total_executions)/test_threads);
   
-  
+  cache_line_close(ID, "cache_line");
+  barriers_term(ID);
   return 0;
 
 }
