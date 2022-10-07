@@ -1,4 +1,4 @@
-/*
+/*   
  *   File: ccbench.h
  *   Author: Vasileios Trigonakis <vasileios.trigonakis@epfl.ch>
  *   Description: definition of ccbench events and help functions
@@ -61,7 +61,7 @@
 #  include <tmc/cmem.h>
 #  include <tmc/cpus.h>
 extern cpu_set_t cpus;
-#endif
+#endif	
 
 #if defined(PLATFORM_NUMA)
 #  include <numa.h>
@@ -183,21 +183,21 @@ const char* moesi_type_des[] =
 
 #define CACHE_LINE_MEM_FILE "/cache_line"
 
-#define B0 _mm_mfence(); barrier_wait(0, ID, test_cores); _mm_mfence();
-#define B1 _mm_mfence(); barrier_wait(2, ID, test_cores); _mm_mfence();
-#define B2 _mm_mfence(); barrier_wait(3, ID, test_cores); _mm_mfence();
-#define B3 _mm_mfence(); barrier_wait(4, ID, test_cores); _mm_mfence();
-#define B4 _mm_mfence(); barrier_wait(5, ID, test_cores); _mm_mfence();
-#define B5 _mm_mfence(); barrier_wait(6, ID, test_cores); _mm_mfence();
-#define B6 _mm_mfence(); barrier_wait(7, ID, test_cores); _mm_mfence();
-#define B7 _mm_mfence(); barrier_wait(8, ID, test_cores); _mm_mfence();
-#define B8 _mm_mfence(); barrier_wait(9, ID, test_cores); _mm_mfence();
-#define B9 _mm_mfence(); barrier_wait(10, ID, test_cores); _mm_mfence();
-#define B10 _mm_mfence(); barrier_wait(11, ID, test_cores); _mm_mfence();
-#define B11 _mm_mfence(); barrier_wait(12, ID, test_cores); _mm_mfence();
-#define B12 _mm_mfence(); barrier_wait(13, ID, test_cores); _mm_mfence();
-#define B13 _mm_mfence(); barrier_wait(14, ID, test_cores); _mm_mfence();
-#define B14 _mm_mfence(); barrier_wait(15, ID, test_cores); _mm_mfence();
+#define B0(ID) _mm_mfence(); barrier_wait(0, (ID), test_cores); _mm_mfence();
+#define B1(ID) _mm_mfence(); barrier_wait(2, (ID), test_cores); _mm_mfence();
+#define B2(ID) _mm_mfence(); barrier_wait(3, (ID), test_cores); _mm_mfence();
+#define B3(ID) _mm_mfence(); barrier_wait(4, (ID), test_cores); _mm_mfence();
+#define B4(ID) _mm_mfence(); barrier_wait(5, (ID), test_cores); _mm_mfence();
+#define B5(ID) _mm_mfence(); barrier_wait(6, (ID), test_cores); _mm_mfence();
+#define B6(ID) _mm_mfence(); barrier_wait(7, (ID), test_cores); _mm_mfence();
+#define B7(ID) _mm_mfence(); barrier_wait(8, (ID), test_cores); _mm_mfence();
+#define B8(ID) _mm_mfence(); barrier_wait(9, (ID), test_cores); _mm_mfence();
+#define B9(ID) _mm_mfence(); barrier_wait(10, (ID), test_cores); _mm_mfence();
+#define B10(ID) _mm_mfence(); barrier_wait(11, (ID), test_cores); _mm_mfence();
+#define B11(ID) _mm_mfence(); barrier_wait(12, (ID), test_cores); _mm_mfence();
+#define B12(ID) _mm_mfence(); barrier_wait(13, (ID), test_cores); _mm_mfence();
+#define B13(ID) _mm_mfence(); barrier_wait(14, (ID), test_cores); _mm_mfence();
+#define B14(ID) _mm_mfence(); barrier_wait(15, (ID), test_cores); _mm_mfence();
 
 #define XSTR(s)                         STR(s)
 #define STR(s)                          #s
@@ -211,7 +211,7 @@ const char* moesi_type_des[] =
 #endif
 
 void
-set_cpu(int cpu)
+set_cpu(int cpu) 
 {
 #if defined(__sparc__)
   processor_bind(P_LWPID,P_MYID, cpu, NULL);
@@ -246,7 +246,7 @@ set_cpu(int cpu)
 
 #ifdef OPTERON
   uint32_t numa_node = cpu/6;
-  numa_set_preferred(numa_node);
+  numa_set_preferred(numa_node);  
 #elif defined(XEON)
   uint32_t numa_node = 0;
   if (cpu == 0)
@@ -261,14 +261,14 @@ set_cpu(int cpu)
     {
       numa_node = cpu / 10;
     }
-  numa_set_preferred(numa_node);
+  numa_set_preferred(numa_node);  
 #elif defined(PLATFORM_NUMA)
   printf("* You need to define how cores correspond to mem nodes in ccbench.h\n");
-#endif
-
+#endif 
+  
 }
 
-inline void
+inline void 
 wait_cycles(volatile uint64_t cycles)
 {
   /* cycles >>= 1; */
@@ -280,12 +280,12 @@ wait_cycles(volatile uint64_t cycles)
 
   /* getticks needs to have a correction because the call itself takes a */
   /* significant number of cycles and skewes the measurement */
-static inline ticks getticks_correction_calc()
+static inline ticks getticks_correction_calc() 
 {
 #define GETTICKS_CALC_REPS 1000000
   ticks t_dur = 0;
   uint32_t i;
-  for (i = 0; i < GETTICKS_CALC_REPS; i++)
+  for (i = 0; i < GETTICKS_CALC_REPS; i++) 
     {
       ticks t_start = getticks();
       ticks t_end = getticks();
@@ -303,7 +303,7 @@ static inline ticks getticks_correction_calc()
     for (c = 0; c < num_cores; c++)		\
       {						\
 	if (id == c)				\
-	  {
+	  {					
 
 #define IN_ORDER_END				\
 	  }					\
@@ -312,8 +312,8 @@ static inline ticks getticks_correction_calc()
   }
 
 
-  static inline unsigned long*
-  seed_rand()
+  static inline unsigned long* 
+  seed_rand() 
   {
     unsigned long* seeds;
     seeds = (unsigned long*) malloc(3 * sizeof(unsigned long));
@@ -326,8 +326,8 @@ static inline ticks getticks_correction_calc()
 extern unsigned long* seeds;
   //Marsaglia's xorshf generator //period 2^96-1
 static inline unsigned long
-xorshf96(unsigned long* x, unsigned long* y, unsigned long* z)
-{
+xorshf96(unsigned long* x, unsigned long* y, unsigned long* z) 
+{          
   unsigned long t;
   (*x) ^= (*x) << 16;
   (*x) ^= (*x) >> 5;
