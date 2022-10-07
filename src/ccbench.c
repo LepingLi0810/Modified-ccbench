@@ -882,6 +882,7 @@ main(int argc, char **argv)
       {"print",                     required_argument, NULL, 'p'},
       {"duration",                  required_argument, NULL, 'a'},
       {"threads",                   required_argument, NULL, 'b'},
+      {"placement",                 required_argument, NULL, 'd'},
       {NULL, 0, NULL, 0}
     };
 
