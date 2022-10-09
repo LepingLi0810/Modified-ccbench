@@ -150,7 +150,7 @@ void *run_test(void *arg) {
         }else {
             cpu = task->id;
         }
-        printf("%d thread = %d cpu\n", task->id, cpu);
+        printf("thread %d = cpu %d\n", task->id, cpu);
 
         set_cpu(cpu);
   }
