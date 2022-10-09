@@ -48,7 +48,6 @@ uint32_t test_cores = DEFAULT_CORES;
 uint32_t test_reps = DEFAULT_REPS;
 uint32_t test_duration = DEFAULT_DURATION;
 uint32_t test_threads = DEFAULT_THREADS;
-uint32_t test_placement = DEFAULT_PLACEMENT;
 uint32_t test_core1 = DEFAULT_CORE1;
 uint32_t test_core2 = DEFAULT_CORE2;
 uint32_t test_core3 = DEFAULT_CORE3;
@@ -63,7 +62,7 @@ size_t   test_mem_size = CACHE_LINE_NUM * sizeof(cache_line_t);
 uint32_t test_cache_line_num = CACHE_LINE_NUM;
 uint32_t test_lfence = DEFAULT_LFENCE;
 uint32_t test_sfence = DEFAULT_SFENCE;
-
+uint32_t test_placement = DEFAULT_PLACEMENT;
 
 static void store_0(volatile cache_line_t* cache_line, volatile uint64_t reps);
 static void store_0_no_pf(volatile cache_line_t* cache_line, volatile uint64_t reps);
@@ -89,6 +88,12 @@ static void create_rand_list_cl(volatile uint64_t* list, size_t n);
 #define Hyperthreading 0
 #define Intra_socket 1
 #define Inter_socket 2
+#define Random 3
+#define min_cpu 0
+#define max_cpu 39
+
+pthread_mutex_t lock;
+volatile int cpu_status[40] = {};
 
 volatile cache_line_t* cache_line;
 
@@ -106,7 +111,18 @@ void *run_test(void *arg) {
   task_t *task = (task_t *) arg;
   int cpu = 0;
   if (task->ncpu != 0) {
-         if (test_placement == Hyperthreading) {
+        //cpu_set_t cpuset;
+        //CPU_ZERO(&cpuset);
+        /*for (int i = 0; i < task->ncpu; i++) {
+            if (i < 8 || i >= 24)
+                CPU_SET(i, &cpuset);
+            else if (i < 16)
+                CPU_SET(i+8, &cpuset);
+            else
+                CPU_SET(i-8, &cpuset);
+        }*/
+        
+        if (test_placement == Hyperthreading) {
             if (task->id >= (test_threads / 2)) {
                 cpu = (task->id / (test_threads / 2)) + 19 + (task->id % (test_threads / 2));
             } else {
@@ -116,7 +132,7 @@ void *run_test(void *arg) {
             if (task->id < 10) {
                 cpu = task->id;
             } else {
-                cpu = task->id + 10;
+                cpu = task->id + 10; 
             }
         } else if (test_placement == Inter_socket) {
             if (task->id >= (test_threads / 2)) {
@@ -124,7 +140,14 @@ void *run_test(void *arg) {
             } else {
                 cpu = task->id;
             }
-        } else {
+        } else if (test_placement == Random) {
+            pthread_mutex_lock(&lock);
+            do {
+                cpu = (rand() % (max_cpu - min_cpu + 1)) + min_cpu;
+            } while (cpu_status[cpu]);
+            cpu_status[cpu] = 1;
+            pthread_mutex_unlock(&lock);
+        }else {
             cpu = task->id;
         }
         printf("%d thread = %d cpu\n", task->id, cpu);
@@ -145,12 +168,17 @@ void *run_test(void *arg) {
 	  _mm_clflush((void*) cache_line);
 	  _mm_mfence();
 	}
-      B0;			/* BARRIER 0 */
+      if(test_test != CAS &&
+         test_test != FAI &&
+         test_test != TAS &&
+         test_test != SWAP) {
+          B0;			/* BARRIER 0 */
+      }
       switch (test_test)
 	{
 	case STORE_ON_MODIFIED: /* 0 */
 	  {  
-	    switch (cpu)
+	    switch (cpu % 3)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -162,7 +190,6 @@ void *run_test(void *arg) {
 		break;
 	      default:
 		B1;		/* BARRIER 1 */
-		store_0_eventually(cache_line, reps);
 		break;
 	      }
 	    break;
@@ -172,11 +199,6 @@ void *run_test(void *arg) {
 
 	    switch (cpu)
 	      {
-	      case 0:
-	      case 1:
-	      case 2:
-		store_0(cache_line, reps);
-		break;
 	      default:
 		store_0_no_pf(cache_line, reps);
 		break;
@@ -185,7 +207,7 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_EXCLUSIVE: /* 2 */
 	  {
-	    switch (cpu)
+	    switch (cpu % 3)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -208,7 +230,7 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_SHARED:	/* 3 */
 	  {
-	    switch (cpu)
+	    switch (cpu % 4)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -235,7 +257,7 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_OWNED_MINE: /* 4 */
 	  {
-	    switch (cpu)
+	    switch (cpu % 3)
 	      {
 	      case 0:
 		B1;			/* BARRIER 1 */
@@ -258,7 +280,7 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_OWNED:	/* 5 */
 	  {
-	    switch (cpu)
+	    switch (cpu % 3)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -281,7 +303,7 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_INVALID:	/* 6 */
 	  {
-	    switch (cpu)
+	    switch (cpu % 3)
 	      {
 	      case 0:
 		B1;
@@ -308,7 +330,7 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_MODIFIED: /* 7 */
 	  {
-	    switch (cpu)
+	    switch (cpu % 3)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -326,7 +348,7 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_EXCLUSIVE: /* 8 */
 	  {
-	    switch (cpu)
+	    switch (cpu % 3)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -354,7 +376,7 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_SHARED:	/* 9 */
 	  {
-	    switch (cpu)
+	    switch (cpu % 4)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -386,7 +408,7 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_OWNED:	/* 10 */
 	  {
-	    switch (cpu)
+	    switch (cpu % 4)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -412,7 +434,7 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_INVALID:	/* 11 */
 	  {
-	    switch (cpu)
+	    switch (cpu % 3)
 	      {
 	      case 0:
 		B1;			/* BARRIER 1 */
@@ -437,16 +459,7 @@ void *run_test(void *arg) {
 	  {
 	    switch (cpu)
 	      {
-	      case 0:
-		sum += cas_0_eventually(cache_line, reps);
-		B1;		/* BARRIER 1 */
-		break;
-	      case 1:
-		B1;		/* BARRIER 1 */
-		sum += cas_0_eventually(cache_line, reps);
-		break;
 	      default:
-		B1;		/* BARRIER 1 */
 		sum += cas_0_eventually(cache_line, reps);
 		break;
 	      }
@@ -456,16 +469,7 @@ void *run_test(void *arg) {
 	  {
 	    switch (cpu)
 	      {
-	      case 0:
-		sum += fai(cache_line, reps);
-		B1;		/* BARRIER 1 */
-		break;
-	      case 1:
-		B1;		/* BARRIER 1 */
-		sum += fai(cache_line, reps);
-		break;
 	      default:
-		B1;		/* BARRIER 1 */
 		sum += fai(cache_line, reps);
 		break;
 	      }
@@ -475,21 +479,8 @@ void *run_test(void *arg) {
 	  {
 	    switch (cpu)
 	      {
-	      case 0:
-		sum += tas(cache_line, reps);
-		B1;		/* BARRIER 1 */
-		B2;		/* BARRIER 2 */
-		break;
-	      case 1:
-		B1;		/* BARRIER 1 */
-		sum += tas(cache_line, reps);
-		_mm_mfence();
-		cache_line->word[0] = 0;
-		B2;		/* BARRIER 2 */
-		break;
 	      default:
-		B1;		/* BARRIER 1 */
-		B2;		/* BARRIER 2 */
+		sum += tas(cache_line, reps);
 		break;
 	      }
 	    break;
@@ -498,24 +489,15 @@ void *run_test(void *arg) {
 	  {
 	    switch (cpu)
 	      {
-	      case 0:
-		sum += swap(cache_line, reps);
-		B1;		/* BARRIER 1 */
-		break;
-	      case 1:
-		B1;		/* BARRIER 1 */
-		sum += swap(cache_line, reps);
-		break;
 	      default:
 	        sum += swap(cache_line, reps);
-		B1;		/* BARRIER 1 */
 		break;
 	      }
 	    break;
 	  }
 	case CAS_ON_MODIFIED: /* 16 */
 	  {
-	    switch (cpu)
+	    switch (cpu % 3)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -537,7 +519,7 @@ void *run_test(void *arg) {
 	  }
 	case FAI_ON_MODIFIED: /* 17 */
 	  {
-	    switch (cpu)
+	    switch (cpu % 3)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -555,7 +537,7 @@ void *run_test(void *arg) {
 	  }
 	case TAS_ON_MODIFIED: /* 18 */
 	  {
-	    switch (cpu)
+	    switch (cpu % 3)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -578,7 +560,7 @@ void *run_test(void *arg) {
 	  }
 	case SWAP_ON_MODIFIED: /* 19 */
 	  {
-	    switch (cpu)
+	    switch (cpu % 3)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -596,7 +578,7 @@ void *run_test(void *arg) {
 	  }
 	case CAS_ON_SHARED: /* 20 */
 	  {
-	    switch (cpu)
+	    switch (cpu % 4)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -623,7 +605,7 @@ void *run_test(void *arg) {
 	  }
 	case FAI_ON_SHARED: /* 21 */
 	  {
-	    switch (cpu)
+	    switch (cpu % 4)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -650,7 +632,7 @@ void *run_test(void *arg) {
 	  }
 	case TAS_ON_SHARED: /* 22 */
 	  {
-	    switch (cpu)
+	    switch (cpu % 4)
 	      {
 	      case 0:
 		if (test_ao_success)
@@ -685,7 +667,7 @@ void *run_test(void *arg) {
 	  }
 	case SWAP_ON_SHARED: /* 23 */
 	  {
-	    switch (cpu)
+	    switch (cpu % 4)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -712,7 +694,7 @@ void *run_test(void *arg) {
 	  }
 	case CAS_CONCURRENT: /* 24 */
 	  {
-	    switch (cpu)
+	    switch (cpu % 3)
 	      {
 	      case 0:
 	      case 1:
@@ -726,7 +708,7 @@ void *run_test(void *arg) {
 	  }
 	case FAI_ON_INVALID:	/* 25 */
 	  {
-	    switch (cpu)
+	    switch (cpu % 3)
 	      {
 	      case 0:
 		B1;		/* BARRIER 1 */
@@ -759,51 +741,33 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_MEM_SIZE: /* 27 */
 	  {
-	    if (cpu < 3)
-	      {
-		sum += load_next(cl, reps);
-	      }
+	    sum += load_next(cl, reps);
 	  }
 	  break;
 	case LFENCE:		/* 28 */
-	  if (cpu < 2)
-	    {
-	      PFDI(0);
-	      _mm_lfence();
-	      PFDO(0, reps);
-	    }
+	    PFDI(0);
+	    _mm_lfence();
+	    PFDO(0, reps);
 	  break;
 	case SFENCE:		/* 29 */
-	  if (cpu < 2)
-	    {
-	      PFDI(0);
-	      _mm_sfence();
-	      PFDO(0, reps);
-	    }
+	    PFDI(0);
+	    _mm_sfence();
+	    PFDO(0, reps);
 	  break;
 	case MFENCE:		/* 30 */
-	  if (cpu < 2)
-	    {
-	      PFDI(0);
-	      _mm_mfence();
-	      PFDO(0, reps);
-	    }
+	    PFDI(0);
+	    _mm_mfence();
+	    PFDO(0, reps);
 	  break;
 	case PAUSE:		/* 31 */
-	  if (cpu < 2)
-	    {
-	      PFDI(0);
-	      _mm_pause();
-	      PFDO(0, reps);
-	    }
+	    PFDI(0);
+	    _mm_pause();
+	    PFDO(0, reps);
 	  break;
 	case NOP:		/* 32 */
-	  if (cpu < 2)
-	    {
-	      PFDI(0);
-	      asm volatile ("nop");
-	      PFDO(0, reps);
-	    }
+	    PFDI(0);
+	    asm volatile ("nop");
+	    PFDO(0, reps);
 	  break;
 	case PROFILER:		/* 30 */
 	default:
@@ -812,8 +776,12 @@ void *run_test(void *arg) {
 	  PFDO(0, reps);
 	  break;
 	}
-
-      B3;			/* BARRIER 3 */
+      if(test_test != CAS &&
+         test_test != FAI &&
+         test_test != TAS &&
+         test_test != SWAP) {
+          B3;			/* BARRIER 3 */
+      }
     }
 
 
@@ -882,7 +850,6 @@ main(int argc, char **argv)
       {"print",                     required_argument, NULL, 'p'},
       {"duration",                  required_argument, NULL, 'a'},
       {"threads",                   required_argument, NULL, 'b'},
-      {"placement",                 required_argument, NULL, 'd'},
       {NULL, 0, NULL, 0}
     };
 
@@ -955,8 +922,8 @@ main(int argc, char **argv)
 		 "  -b, --threads <int>\n"
 		 "        number of threads to create (default=" XSTR(DEFAULT_THREADS) ")\n"
 		 "  -d, --placement <int>\n"
-                 "        how to place threads (default=" XSTR(DEFAULT_PLACEMENT) ")\n"
-		 );
+		 "        how to place threads (default=" XSTR(DEFAULT_PLACEMENT) ")\n"
+                 );
 	  printf("Supported events: \n");
 	  int ar;
 	  for (ar = 0; ar < NUM_EVENTS; ar++)
@@ -1015,12 +982,12 @@ main(int argc, char **argv)
 	case 'b':
 	  test_threads = atoi(optarg);
 	  break;
-        case 'd':
-          test_placement = atoi(optarg);
-          break;
 	case '?':
 	  printf("Use -h or --help for help\n");
 	  exit(0);
+        case 'd':
+          test_placement = atoi(optarg);
+          break;
 	default:
 	  exit(1);
 	}
@@ -1125,6 +1092,10 @@ main(int argc, char **argv)
         tasks[i].operation_executed = 0;
         //printf("Task id = %d, priority = %d, ncpu = %d, atomics_executed = %llu\n", tasks[i].id, tasks[i].priority, tasks[i].ncpu, tasks[i].atomics_executed);
   }
+  if (pthread_mutex_init(&lock, NULL) != 0) {
+        printf("Fail to initialize the lock\n");
+        return 1;
+  }  
   for (int i = 0; i < test_threads; i++) {
         pthread_create(&tasks[i].thread, NULL, run_test, &tasks[i]);
   }
