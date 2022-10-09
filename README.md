@@ -9,6 +9,9 @@ new options:
   
   -b, --threads <int>
         number of threads to create (default=4)
+        
+  -d, --placement <int>
+        how to place threads (default=Hyperthreading)
 
 
 Interpreting the results:
@@ -16,93 +19,57 @@ Interpreting the results:
 
 The comments prefixed with "#>>" explain the results.
 
-[leping@snares-02] (9)$ ./ccbench -a15 -b6 -c6 -t0 -r10000000
-  
-test:    STORE_ON_MODIFIED  / #cores: 6 / #repetitions: 10000000 / stride: 2048 (128 kiB)  / fence:  none
-  
-5 thread = 8 cpu
-  
-4 thread = 7 cpu
-  
-3 thread = 6 cpu
-  
-2 thread = 2 cpu
-  
-1 thread = 1 cpu
-  
-0 thread = 0 cpu
-  
-* warning: avg pfd correction is 30.5 with std deviation: 2233763527852936704.0%. Recalculating.
-  
-* warning: avg pfd correction is 30.5 with std deviation: 2233763542496078080.0%. Recalculating.
-  
-* warning: avg pfd correction is 30.7 with std deviation: 171.5%. Recalculating.
-  
-* warning: avg pfd correction is 30.7 with std deviation: 171.5%. Recalculating.
-  
-* warning: avg pfd correction is 30.7 with std deviation: 171.5%. Recalculating.
-  
-* warning: avg pfd correction is 30.7 with std deviation: 171.5%. Recalculating.
-  
-* warning: setting pfd correction manually
-  
-* warning: no default value for pfd correction is provided (fix in src/pfd.c)
-  
-* set pfd correction: 18 (std deviation: 16236615652737165312.0%)
+yuvraj@node-0:~/ssd/leping/Modified-ccbench$ ./ccbench -a15 -b10 -c10 -d1 -t0 -r100000
 
-  
-* warning: setting pfd correction manually
-  
-* warning: no default value for pfd correction is provided (fix in src/pfd.c)
-  
-* set pfd correction: 18 (std deviation: 16236560247138439168.0%)
+test:    STORE_ON_MODIFIED  / #cores: 10 / #repetitions: 100000 / stride: 2048 (128 kiB)  / fence:  none
 
-  
-* warning: setting pfd correction manually
-  
-* warning: no default value for pfd correction is provided (fix in src/pfd.c)
-  
-* set pfd correction: 27 (std deviation: 141.4%)
+thread 6 = cpu 6
 
-  
-* warning: setting pfd correction manually
-  
-* warning: no default value for pfd correction is provided (fix in src/pfd.c)
-  
-* set pfd correction: 27 (std deviation: 141.4%)
+thread 7 = cpu 7
 
-  
-* warning: setting pfd correction manually
-  
-* warning: no default value for pfd correction is provided (fix in src/pfd.c)
-  
-* set pfd correction: 27 (std deviation: 141.4%)
+thread 8 = cpu 8
 
-  
-* warning: setting pfd correction manually
-  
-* warning: no default value for pfd correction is provided (fix in src/pfd.c)
-  
-* set pfd correction: 27 (std deviation: 141.4%)
-  
+thread 9 = cpu 9
 
-id 00 operation_executed 37315 schedstat 14997469498 2602014 115
-  
-id 03 operation_executed 37315 schedstat 14996736407 487683 66
-  
-id 04 operation_executed 37315 schedstat 14996707076 408299 71
-  
-id 02 operation_executed 37315 schedstat 14988748721 8408886 80
-  
-id 01 operation_executed 37315 schedstat 14996178412 318418 52
-  
-id 05 operation_executed 37315 schedstat 14993440997 3697165 64
-  
-Total Exeuctions = 223890
-  
-Average atomic execution time(ns) = 66997.186118
-  
-Per thread execution average = 37315.000000
+thread 5 = cpu 5
+
+thread 4 = cpu 4
+
+thread 3 = cpu 3
+
+thread 2 = cpu 2
+
+thread 1 = cpu 1
+
+thread 0 = cpu 0
+
+
+id 08 operation_executed 24666 schedstat 14999290449 101025 11
+
+id 01 operation_executed 24666 schedstat 15000759154 442706 20
+
+id 02 operation_executed 24666 schedstat 15000736844 397527 17
+
+id 04 operation_executed 24666 schedstat 14998979861 386082 13
+
+id 09 operation_executed 24666 schedstat 15000839265 123551 13
+
+id 00 operation_executed 24666 schedstat 14997543156 3767097 79
+
+id 03 operation_executed 24666 schedstat 15000791159 320566 14
+
+id 07 operation_executed 24666 schedstat 14999207208 105350 15
+
+id 05 operation_executed 24666 schedstat 14999265272 228502 8
+
+id 06 operation_executed 24666 schedstat 15000970329 146409 20
+
+Total Exeuctions = 246660
+
+Average atomic execution time(ns) = 60812.454391
+
+Per thread execution average = 24666.000000
+
   
 
 </pre>
