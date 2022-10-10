@@ -196,13 +196,7 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_MODIFIED_NO_SYNC: /* 1 */
 	  {
-
-	    switch (task->id)
-	      {
-	      default:
-		store_0_no_pf(cache_line, reps);
-		break;
-	      }
+	    store_0_no_pf(cache_line, reps);
 	    break;
 	  }
 	case STORE_ON_EXCLUSIVE: /* 2 */
