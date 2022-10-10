@@ -178,7 +178,7 @@ void *run_test(void *arg) {
 	{
 	case STORE_ON_MODIFIED: /* 0 */
 	  {  
-	    switch (cpu % 3)
+	    switch (task->id % 3)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -197,7 +197,7 @@ void *run_test(void *arg) {
 	case STORE_ON_MODIFIED_NO_SYNC: /* 1 */
 	  {
 
-	    switch (cpu)
+	    switch (task->id)
 	      {
 	      default:
 		store_0_no_pf(cache_line, reps);
@@ -207,7 +207,7 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_EXCLUSIVE: /* 2 */
 	  {
-	    switch (cpu % 3)
+	    switch (task->id % 3)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -230,7 +230,7 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_SHARED:	/* 3 */
 	  {
-	    switch (cpu % 4)
+	    switch (task->id % 4)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -257,7 +257,7 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_OWNED_MINE: /* 4 */
 	  {
-	    switch (cpu % 3)
+	    switch (task->id % 3)
 	      {
 	      case 0:
 		B1;			/* BARRIER 1 */
@@ -280,7 +280,7 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_OWNED:	/* 5 */
 	  {
-	    switch (cpu % 3)
+	    switch (task->id % 3)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -303,7 +303,7 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_INVALID:	/* 6 */
 	  {
-	    switch (cpu % 3)
+	    switch (task->id % 3)
 	      {
 	      case 0:
 		B1;
@@ -330,7 +330,7 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_MODIFIED: /* 7 */
 	  {
-	    switch (cpu % 3)
+	    switch (task->id % 3)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -348,7 +348,7 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_EXCLUSIVE: /* 8 */
 	  {
-	    switch (cpu % 3)
+	    switch (task->id % 3)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -376,7 +376,7 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_SHARED:	/* 9 */
 	  {
-	    switch (cpu % 4)
+	    switch (task->id % 4)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -408,7 +408,7 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_OWNED:	/* 10 */
 	  {
-	    switch (cpu % 4)
+	    switch (task->id % 4)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -434,7 +434,7 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_INVALID:	/* 11 */
 	  {
-	    switch (cpu % 3)
+	    switch (task->id % 3)
 	      {
 	      case 0:
 		B1;			/* BARRIER 1 */
@@ -457,7 +457,7 @@ void *run_test(void *arg) {
 	  }
 	case CAS: /* 12 */
 	  {
-	    switch (cpu)
+	    switch (task->id)
 	      {
 	      default:
 		sum += cas_0_eventually(cache_line, reps);
@@ -467,7 +467,7 @@ void *run_test(void *arg) {
 	  }
 	case FAI: /* 13 */
 	  {
-	    switch (cpu)
+	    switch (task->id)
 	      {
 	      default:
 		sum += fai(cache_line, reps);
@@ -477,7 +477,7 @@ void *run_test(void *arg) {
 	  }
 	case TAS:		/* 14 */
 	  {
-	    switch (cpu)
+	    switch (task->id)
 	      {
 	      default:
 		sum += tas(cache_line, reps);
@@ -487,7 +487,7 @@ void *run_test(void *arg) {
 	  }
 	case SWAP: /* 15 */
 	  {
-	    switch (cpu)
+	    switch (task->id)
 	      {
 	      default:
 	        sum += swap(cache_line, reps);
@@ -497,7 +497,7 @@ void *run_test(void *arg) {
 	  }
 	case CAS_ON_MODIFIED: /* 16 */
 	  {
-	    switch (cpu % 3)
+	    switch (task->id % 3)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -519,7 +519,7 @@ void *run_test(void *arg) {
 	  }
 	case FAI_ON_MODIFIED: /* 17 */
 	  {
-	    switch (cpu % 3)
+	    switch (task->id % 3)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -537,7 +537,7 @@ void *run_test(void *arg) {
 	  }
 	case TAS_ON_MODIFIED: /* 18 */
 	  {
-	    switch (cpu % 3)
+	    switch (task->id % 3)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -560,7 +560,7 @@ void *run_test(void *arg) {
 	  }
 	case SWAP_ON_MODIFIED: /* 19 */
 	  {
-	    switch (cpu % 3)
+	    switch (task->id % 3)
 	      {
 	      case 0:
 		store_0_eventually(cache_line, reps);
@@ -578,7 +578,7 @@ void *run_test(void *arg) {
 	  }
 	case CAS_ON_SHARED: /* 20 */
 	  {
-	    switch (cpu % 4)
+	    switch (task->id % 4)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -605,7 +605,7 @@ void *run_test(void *arg) {
 	  }
 	case FAI_ON_SHARED: /* 21 */
 	  {
-	    switch (cpu % 4)
+	    switch (task->id % 4)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -632,7 +632,7 @@ void *run_test(void *arg) {
 	  }
 	case TAS_ON_SHARED: /* 22 */
 	  {
-	    switch (cpu % 4)
+	    switch (task->id % 4)
 	      {
 	      case 0:
 		if (test_ao_success)
@@ -667,7 +667,7 @@ void *run_test(void *arg) {
 	  }
 	case SWAP_ON_SHARED: /* 23 */
 	  {
-	    switch (cpu % 4)
+	    switch (task->id % 4)
 	      {
 	      case 0:
 		sum += load_0_eventually(cache_line, reps);
@@ -694,7 +694,7 @@ void *run_test(void *arg) {
 	  }
 	case CAS_CONCURRENT: /* 24 */
 	  {
-	    switch (cpu % 3)
+	    switch (task->id % 3)
 	      {
 	      case 0:
 	      case 1:
@@ -708,7 +708,7 @@ void *run_test(void *arg) {
 	  }
 	case FAI_ON_INVALID:	/* 25 */
 	  {
-	    switch (cpu % 3)
+	    switch (task->id % 3)
 	      {
 	      case 0:
 		B1;		/* BARRIER 1 */
@@ -731,7 +731,7 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_L1:	/* 26 */
 	  {
-	    if (cpu == 0)
+	    if (task->id == 0)
 	      {
 		sum += load_0(cache_line, reps);
 		sum += load_0(cache_line, reps);
