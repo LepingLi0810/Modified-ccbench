@@ -196,13 +196,7 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_MODIFIED_NO_SYNC: /* 1 */
 	  {
-
-	    switch (task->id)
-	      {
-	      default:
-		store_0_no_pf(cache_line, reps);
-		break;
-	      }
+	    store_0_no_pf(cache_line, reps);
 	    break;
 	  }
 	case STORE_ON_EXCLUSIVE: /* 2 */
@@ -457,42 +451,22 @@ void *run_test(void *arg) {
 	  }
 	case CAS: /* 12 */
 	  {
-	    switch (task->id)
-	      {
-	      default:
-		sum += cas_0_eventually(cache_line, reps);
-		break;
-	      }
+	    sum += cas_0_eventually(cache_line, reps);
 	    break;
 	  }
 	case FAI: /* 13 */
 	  {
-	    switch (task->id)
-	      {
-	      default:
-		sum += fai(cache_line, reps);
-		break;
-	      }
+	    sum += fai(cache_line, reps);
 	    break;
 	  }
 	case TAS:		/* 14 */
 	  {
-	    switch (task->id)
-	      {
-	      default:
-		sum += tas(cache_line, reps);
-		break;
-	      }
+            sum += tas(cache_line, reps);
 	    break;
 	  }
 	case SWAP: /* 15 */
 	  {
-	    switch (task->id)
-	      {
-	      default:
-	        sum += swap(cache_line, reps);
-		break;
-	      }
+	    sum += swap(cache_line, reps);
 	    break;
 	  }
 	case CAS_ON_MODIFIED: /* 16 */
