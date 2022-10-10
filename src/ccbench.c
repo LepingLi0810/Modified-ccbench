@@ -129,16 +129,16 @@ void *run_test(void *arg) {
                 cpu = task->id;
             }
         } else if (test_placement == Intra_socket) {
-            if (task->id < 10) {
-                cpu = task->id;
+            if (task->id % 20 < 10) {
+                cpu = task->id % 20;
             } else {
-                cpu = task->id + 10; 
+                cpu = task->id % 20 + 10; 
             }
         } else if (test_placement == Inter_socket) {
-            if (task->id >= (test_threads / 2)) {
-                cpu = (task->id / (test_threads / 2)) + 9 + (task->id % (test_threads / 2));
+            if ((task->id % 20) >= (test_threads / 2)) {
+                cpu = ((task->id % 20) / (test_threads / 2)) + 9 + (task->id % 20  % (test_threads / 2));
             } else {
-                cpu = task->id;
+                cpu = task->id % 20;
             }
         } else if (test_placement == Random) {
             pthread_mutex_lock(&lock);
