@@ -2,7 +2,7 @@ SRC = src
 INCLUDE = include
 
 CFLAGS = -O3 -Wall
-LDFLAGS = -lm -lrt
+LDFLAGS = -lm -lrt -lpthread
 VER_FLAGS = -D_GNU_SOURCE
 
 ifeq ($(VERSION),DEBUG) 
