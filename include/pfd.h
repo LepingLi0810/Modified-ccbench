@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include "common.h"
 
+extern uint64_t pfd_size;
 
 typedef uint64_t ticks;
 
@@ -143,11 +144,37 @@ extern volatile ticks pfd_correction;
 
 #  define PFDO(store, entry)						\
   asm volatile ("");							\
+  if (entry == pfd_size * 3 / 4) {                                      \
+    ticks *temp;                                                        \
+    uint64_t new_size = pfd_size * 2;                                   \
+    temp = (ticks *)calloc(new_size, sizeof(ticks));                    \
+    uint64_t i;                                                         \
+    for (i = 0; i < pfd_size * 3 / 4; i++) {                            \
+      temp[i] = pfd_store[store][i];                                    \
+    }                                                                   \
+    free((void *)pfd_store[store]);                                     \
+    pfd_store[store] = temp;                                            \
+    pfd_size = new_size;                                                \
+    printf("new size: %ld current entry: %llu\n", pfd_size, entry);     \
+  }                                                                     \
+  _mm_mfence();                                                         \
   pfd_store[store][entry] =  getticks() - _pfd_s[store] - pfd_correction; \
   }
 
 #  define PFDOR(store, entry, reps)					\
   asm volatile ("");							\
+  if (entry == pfd_size / 2) {                                          \
+    ticks *temp;                                                        \
+    uint64_t new_size = pfd_size * 2;                                   \
+    temp = (ticks *)calloc(new_size, sizeof(ticks));                    \
+    uint64_t i;                                                         \
+    for (i = 0; i < pfd_size / 2; i++) {                                \
+      temp[i] = pfd_store[store][i];                                    \
+    }                                                                   \
+    free((void *)pfd_store[store]);                                     \
+    pfd_store[store] = temp;                                            \
+    pfd_size = new_size;                                                \
+  }                                                                     \
   volatile ticks __t = getticks();					\
   pfd_store[store][entry] = (__t - _pfd_s[store] - pfd_correction) /	\
     reps;								\

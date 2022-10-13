@@ -35,6 +35,8 @@ volatile ticks** pfd_store;
 volatile ticks* _pfd_s;
 volatile ticks pfd_correction;
 
+uint64_t pfd_size = 0;
+
 void 
 pfd_store_init(uint32_t num_entries)
 {
@@ -52,6 +54,7 @@ pfd_store_init(uint32_t num_entries)
 
   int32_t tries = 10;
   uint32_t print_warning = 0;
+  pfd_size = num_entries;
 
 
 #if defined(XEON) || defined(OPTERON2) || defined(XEON2) || defined(DEFAULT)
