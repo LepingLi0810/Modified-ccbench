@@ -75,6 +75,7 @@ static uint64_t load_0_eventually(volatile cache_line_t* cl, volatile uint64_t r
 static uint64_t load_0_eventually_no_pf(volatile cache_line_t* cl);
 
 static void invalidate(volatile cache_line_t* cache_line, uint64_t index, volatile uint64_t reps);
+static uint32_t cas_success_only(volatile cache_line_t* cache_line, volatile uint64_t reps);
 static uint32_t cas(volatile cache_line_t* cache_line, volatile uint64_t reps);
 static uint32_t cas_0_eventually(volatile cache_line_t* cache_line, volatile uint64_t reps);
 static uint32_t cas_no_pf(volatile cache_line_t* cache_line, volatile uint64_t reps);
@@ -449,27 +450,32 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case CAS: /* 12 */
+        case CAS_SUCCESS: /* 12 */
+          {
+            sum += cas_success_only(cache_line, reps);
+            break;
+          }
+	case CAS: /* 13 */
 	  {
 	    sum += cas_0_eventually(cache_line, reps);
 	    break;
 	  }
-	case FAI: /* 13 */
+	case FAI: /* 14 */
 	  {
 	    sum += fai(cache_line, reps);
 	    break;
 	  }
-	case TAS:		/* 14 */
+	case TAS:		/* 15 */
 	  {
             sum += tas(cache_line, reps);
 	    break;
 	  }
-	case SWAP: /* 15 */
+	case SWAP: /* 16 */
 	  {
 	    sum += swap(cache_line, reps);
 	    break;
 	  }
-	case CAS_ON_MODIFIED: /* 16 */
+	case CAS_ON_MODIFIED: /* 17 */
 	  {
 	    switch (task->id % 3)
 	      {
@@ -491,7 +497,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case FAI_ON_MODIFIED: /* 17 */
+	case FAI_ON_MODIFIED: /* 18 */
 	  {
 	    switch (task->id % 3)
 	      {
@@ -509,7 +515,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case TAS_ON_MODIFIED: /* 18 */
+	case TAS_ON_MODIFIED: /* 19 */
 	  {
 	    switch (task->id % 3)
 	      {
@@ -532,7 +538,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case SWAP_ON_MODIFIED: /* 19 */
+	case SWAP_ON_MODIFIED: /* 20 */
 	  {
 	    switch (task->id % 3)
 	      {
@@ -550,7 +556,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case CAS_ON_SHARED: /* 20 */
+	case CAS_ON_SHARED: /* 21 */
 	  {
 	    switch (task->id % 4)
 	      {
@@ -577,7 +583,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case FAI_ON_SHARED: /* 21 */
+	case FAI_ON_SHARED: /* 22 */
 	  {
 	    switch (task->id % 4)
 	      {
@@ -604,7 +610,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case TAS_ON_SHARED: /* 22 */
+	case TAS_ON_SHARED: /* 23 */
 	  {
 	    switch (task->id % 4)
 	      {
@@ -639,7 +645,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case SWAP_ON_SHARED: /* 23 */
+	case SWAP_ON_SHARED: /* 24 */
 	  {
 	    switch (task->id % 4)
 	      {
@@ -666,7 +672,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case CAS_CONCURRENT: /* 24 */
+	case CAS_CONCURRENT: /* 25 */
 	  {
 	    switch (task->id % 3)
 	      {
@@ -680,7 +686,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case FAI_ON_INVALID:	/* 25 */
+	case FAI_ON_INVALID:	/* 26 */
 	  {
 	    switch (task->id % 3)
 	      {
@@ -703,7 +709,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case LOAD_FROM_L1:	/* 26 */
+	case LOAD_FROM_L1:	/* 27 */
 	  {
 	    if (task->id == 0)
 	      {
@@ -713,32 +719,32 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case LOAD_FROM_MEM_SIZE: /* 27 */
+	case LOAD_FROM_MEM_SIZE: /* 28 */
 	  {
 	    sum += load_next(cl, reps);
 	  }
 	  break;
-	case LFENCE:		/* 28 */
+	case LFENCE:		/* 29 */
 	    PFDI(0);
 	    _mm_lfence();
 	    PFDO(0, reps);
 	  break;
-	case SFENCE:		/* 29 */
+	case SFENCE:		/* 30 */
 	    PFDI(0);
 	    _mm_sfence();
 	    PFDO(0, reps);
 	  break;
-	case MFENCE:		/* 30 */
+	case MFENCE:		/* 31 */
 	    PFDI(0);
 	    _mm_mfence();
 	    PFDO(0, reps);
 	  break;
-	case PAUSE:		/* 31 */
+	case PAUSE:		/* 32 */
 	    PFDI(0);
 	    _mm_pause();
 	    PFDO(0, reps);
 	  break;
-	case NOP:		/* 32 */
+	case NOP:		/* 33 */
 	    PFDI(0);
 	    asm volatile ("nop");
 	    PFDO(0, reps);
@@ -1089,6 +1095,13 @@ main(int argc, char **argv)
   barriers_term(ID);
   return 0;
 
+}
+
+uint32_t
+cas_success_only(volatile cache_line_t* cl, volatile uint64_t reps) {
+  while (!__sync_bool_compare_and_swap(cl->word, 0, 1));
+  __sync_bool_compare_and_swap(cl->word, 1, 0);
+  return 1;
 }
 
 uint32_t
