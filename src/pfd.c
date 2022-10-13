@@ -31,30 +31,37 @@
 #include <math.h>
 #include "atomic_ops.h"
 
-volatile ticks** pfd_store;
-volatile ticks* _pfd_s;
-volatile ticks pfd_correction;
+volatile ticks*** pfd_store;
+//volatile ticks** pfd_store;
+volatile ticks** _pfd_s;
+volatile ticks* pfd_correction;
 
-uint64_t pfd_size = 0;
+volatile uint64_t *pfd_size;
+extern uint32_t test_threads;
 
 void 
 pfd_store_init(uint32_t num_entries)
 {
-  _pfd_s = (volatile ticks*) malloc(PFD_NUM_STORES * sizeof(ticks));
-  pfd_store = (volatile ticks**) malloc(PFD_NUM_STORES * sizeof(ticks*));
-  assert(_pfd_s != NULL && pfd_store != NULL);
+  _pfd_s = (volatile ticks**) malloc(test_threads * sizeof(ticks *));
+  pfd_store = (volatile ticks***) malloc(test_threads * sizeof(ticks **));
+  pfd_size = (volatile uint64_t *) malloc(test_threads * sizeof(uint64_t));
+  assert(_pfd_s != NULL && pfd_store != NULL && pfd_size != NULL);
 
   volatile uint32_t i;
-  for (i = 0; i < PFD_NUM_STORES; i++)
+  for (i = 0; i < test_threads; i++)
     {
-      pfd_store[i] = (ticks*) malloc(num_entries * sizeof(ticks));
-      assert(pfd_store[i] != NULL);
-      PREFETCHW((void*) &pfd_store[i][0]);
+      pfd_store[i] = (volatile ticks **) malloc(PFD_NUM_STORES * sizeof(ticks *));
+      _pfd_s[i] = (volatile ticks *) malloc(PFD_NUM_STORES * sizeof(ticks));
+      pfd_size[i] = num_entries;
+      for (int j = 0; j < PFD_NUM_STORES; j++) {
+        pfd_store[i][j] = (volatile ticks *) malloc(num_entries * sizeof(ticks));
+        assert(pfd_store[i][j] != NULL);
+        PREFETCHW((void*) &pfd_store[i][j][0]);
+      }
     }
 
   int32_t tries = 10;
   uint32_t print_warning = 0;
-  pfd_size = num_entries;
 
 
 #if defined(XEON) || defined(OPTERON2) || defined(XEON2) || defined(DEFAULT)
@@ -66,27 +73,30 @@ pfd_store_init(uint32_t num_entries)
     }
 #endif	/* XEON */
 
-  pfd_correction = 0;
+  pfd_correction = (volatile ticks *) malloc(test_threads * sizeof(ticks));
 
 #define PFD_CORRECTION_CONF 3
  retry:
-  for (i = 0; i < num_entries; i++)
-    {
-      PFDI(0);
-      asm volatile ("");
-      PFDO(0, i);
-    }
-
-  abs_deviation_t ad;
-  get_abs_deviation(pfd_store[0], num_entries, &ad);
-  double std_pp = 100 * (1 - (ad.avg - ad.std_dev) / ad.avg);
-
-  if (std_pp > PFD_CORRECTION_CONF)
+  for(int j = 0; j < test_threads; j++) {
+    for (i = 0; i < num_entries; i++)
+      {
+        PFDI(j, 0);
+        asm volatile ("");
+        PFDO(j, 0, i);
+      }
+  }
+  abs_deviation_t *ad = (abs_deviation_t *) malloc(test_threads * sizeof(abs_deviation_t));
+  double *std_pp = (double *) malloc(test_threads * sizeof(double));
+  for(i = 0; i < test_threads; i++) {
+    get_abs_deviation(pfd_store[i][0], num_entries, &ad[i]);
+    std_pp[i] = 100 * (1 - (ad[i].avg - ad[i].std_dev) / ad[i].avg);
+  
+  if (std_pp[i] > PFD_CORRECTION_CONF)
     {
       if (print_warning++ == 1)	/* print warning if 2 failed attempts */
 	{
 	  printf("* warning: avg pfd correction is %.1f with std deviation: %.1f%%. Recalculating.\n", 
-		 ad.avg, std_pp);
+		 ad[i].avg, std_pp[i]);
 	}
       if (tries-- > 0)
 	{
@@ -96,23 +106,24 @@ pfd_store_init(uint32_t num_entries)
 	{
 	  printf("* warning: setting pfd correction manually\n");
 #if defined(OPTERON)
-	  ad.avg = 64;
+	  ad[i].avg = 64;
 #elif defined(OPTERON2)
-	  ad.avg = 68;
+	  ad[i].avg = 68;
 #elif defined(XEON) || defined(XEON2)
-	  ad.avg = 20;
+	  ad[i].avg = 20;
 #elif defined(NIAGARA)
-	  ad.avg = 76;
+	  ad[i].avg = 76;
 #else
 	  printf("* warning: no default value for pfd correction is provided (fix in src/pfd.c)\n");
 #endif
 	}
     }
  
-  pfd_correction = ad.avg;
-  assert(pfd_correction > 0);
+  pfd_correction[i] = ad[i].avg;
+  assert(pfd_correction[i] > 0);
   
-  printf("* set pfd correction: %llu (std deviation: %.1f%%)\n\n", (long long unsigned int) pfd_correction, std_pp);
+  printf("* set pfd correction: %llu (std deviation: %.1f%%)\n\n", (long long unsigned int) pfd_correction[i], std_pp[i]);
+  }
 }
 
 static inline 

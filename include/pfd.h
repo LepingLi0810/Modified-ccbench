@@ -36,7 +36,7 @@
 #include <stdlib.h>
 #include "common.h"
 
-extern uint64_t pfd_size;
+extern volatile uint64_t *pfd_size;
 
 typedef uint64_t ticks;
 
@@ -124,80 +124,79 @@ typedef struct abs_deviation
 #define PFD_NUM_STORES 2
 #define PFD_PRINT_MAX 200
 
-extern volatile ticks** pfd_store;
-extern volatile ticks* _pfd_s;
-extern volatile ticks pfd_correction;
+extern volatile ticks*** pfd_store;
+extern volatile ticks** _pfd_s;
+extern volatile ticks* pfd_correction;
 #if !defined(DO_TIMINGS)
 #  define PFDINIT(num_entries) 
-#  define PFDI(store) 
-#  define PFDO(store, entry) 
-#  define PFDP(store, num_vals) 
-#  define PFDPN(store, num_vals, num_print)
+#  define PFDI(id, store) 
+#  define PFDO(id, store, entry) 
+#  define PFDP(id, store, num_vals) 
+#  define PFDPN(id, store, num_vals, num_print)
 #else  /* DO_TIMINGS */
 #  define PFDINIT(num_entries) pfd_store_init(num_entries)
 
-#  define PFDI(store)				\
+#  define PFDI(id, store)				\
   {						\
   asm volatile ("");				\
-  _pfd_s[store] = getticks();
+  _pfd_s[id][store] = getticks();
 
 
-#  define PFDO(store, entry)						\
+#  define PFDO(id, store, entry)						\
   asm volatile ("");							\
-  if (entry == pfd_size * 3 / 4) {                                      \
+  if (entry == pfd_size[id] * 3 / 4) {                                      \
     ticks *temp;                                                        \
-    uint64_t new_size = pfd_size * 2;                                   \
+    uint64_t new_size = pfd_size[id] * 2;                                   \
     temp = (ticks *)calloc(new_size, sizeof(ticks));                    \
     uint64_t i;                                                         \
-    for (i = 0; i < pfd_size * 3 / 4; i++) {                            \
-      temp[i] = pfd_store[store][i];                                    \
+    for (i = 0; i < pfd_size[id] * 3 / 4; i++) {                            \
+      temp[i] = pfd_store[id][store][i];                                    \
     }                                                                   \
-    free((void *)pfd_store[store]);                                     \
-    pfd_store[store] = temp;                                            \
-    pfd_size = new_size;                                                \
-    printf("new size: %ld current entry: %llu\n", pfd_size, entry);     \
+    free((void *)pfd_store[id][store]);                                     \
+    pfd_store[id][store] = temp;                                            \
+    pfd_size[id] = new_size;                                                \
   }                                                                     \
   _mm_mfence();                                                         \
-  pfd_store[store][entry] =  getticks() - _pfd_s[store] - pfd_correction; \
+  pfd_store[id][store][entry] =  getticks() - _pfd_s[id][store] - pfd_correction[id]; \
   }
 
-#  define PFDOR(store, entry, reps)					\
+#  define PFDOR(id, store, entry, reps)					\
   asm volatile ("");							\
-  if (entry == pfd_size / 2) {                                          \
+  if (entry == pfd_size[id] / 2) {                                          \
     ticks *temp;                                                        \
-    uint64_t new_size = pfd_size * 2;                                   \
+    uint64_t new_size = pfd_size[id] * 2;                                   \
     temp = (ticks *)calloc(new_size, sizeof(ticks));                    \
     uint64_t i;                                                         \
-    for (i = 0; i < pfd_size / 2; i++) {                                \
-      temp[i] = pfd_store[store][i];                                    \
+    for (i = 0; i < pfd_size[id] / 2; i++) {                                \
+      temp[i] = pfd_store[id][store][i];                                    \
     }                                                                   \
-    free((void *)pfd_store[store]);                                     \
-    pfd_store[store] = temp;                                            \
-    pfd_size = new_size;                                                \
+    free((void *)pfd_store[id][store]);                                     \
+    pfd_store[id][store] = temp;                                            \
+    pfd_size[id] = new_size;                                                \
   }                                                                     \
   volatile ticks __t = getticks();					\
-  pfd_store[store][entry] = (__t - _pfd_s[store] - pfd_correction) /	\
+  pfd_store[id][store][entry] = (__t - _pfd_s[id][store] - pfd_correction[id]) /	\
     reps;								\
   }
 
-#  define PFDPN(store, num_vals, num_print)				\
+#  define PFDPN(id, store, num_vals, num_print)				\
   {									\
     uint32_t _i;							\
     uint32_t p = num_print;						\
     if (p > num_vals) { p = num_vals; }					\
     for (_i = 0; _i < p; _i++)						\
       {									\
-	printf("[%3d: %4ld] ", _i, (long int) pfd_store[store][_i]);	\
+	printf("[%3d: %4ld] ", _i, (long int) pfd_store[id][store][_i]);	\
       }									\
     abs_deviation_t ad;							\
-    get_abs_deviation(pfd_store[store], num_vals, &ad);			\
+    get_abs_deviation(pfd_store[id][store], num_vals, &ad);			\
     print_abs_deviation(&ad);						\
   }
 #endif /* !DO_TIMINGS */
 
-# define PFDPREFTCH(store, entry)		\
-  PFDI(store);					\
-  PFDO(store, entry);
+# define PFDPREFTCH(id, store, entry)		\
+  PFDI(id, store);					\
+  PFDO(id, store, entry);
 
 
 
