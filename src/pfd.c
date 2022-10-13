@@ -32,7 +32,6 @@
 #include "atomic_ops.h"
 
 volatile ticks*** pfd_store;
-//volatile ticks** pfd_store;
 volatile ticks** _pfd_s;
 volatile ticks* pfd_correction;
 
@@ -46,7 +45,6 @@ pfd_store_init(uint32_t num_entries)
   pfd_store = (volatile ticks***) malloc(test_threads * sizeof(ticks **));
   pfd_size = (volatile uint64_t *) malloc(test_threads * sizeof(uint64_t));
   assert(_pfd_s != NULL && pfd_store != NULL && pfd_size != NULL);
-
   volatile uint32_t i;
   for (i = 0; i < test_threads; i++)
     {
