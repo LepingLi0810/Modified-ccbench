@@ -64,24 +64,24 @@ uint32_t test_lfence = DEFAULT_LFENCE;
 uint32_t test_sfence = DEFAULT_SFENCE;
 uint32_t test_placement = DEFAULT_PLACEMENT;
 
-static void store_0(volatile cache_line_t* cache_line, volatile uint64_t reps);
+static void store_0(int id, volatile cache_line_t* cache_line, volatile uint64_t reps);
 static void store_0_no_pf(volatile cache_line_t* cache_line, volatile uint64_t reps);
-static void store_0_eventually(volatile cache_line_t* cl, volatile uint64_t reps);
-static void store_0_eventually_pfd1(volatile cache_line_t* cl, volatile uint64_t reps);
+static void store_0_eventually(int id, volatile cache_line_t* cl, volatile uint64_t reps);
+static void store_0_eventually_pfd1(int id, volatile cache_line_t* cl, volatile uint64_t reps);
 
-static uint64_t load_0(volatile cache_line_t* cache_line, volatile uint64_t reps);
-static uint64_t load_next(volatile uint64_t* cl, volatile uint64_t reps);
-static uint64_t load_0_eventually(volatile cache_line_t* cl, volatile uint64_t reps);
+static uint64_t load_0(int id, volatile cache_line_t* cache_line, volatile uint64_t reps);
+static uint64_t load_next(int id, volatile uint64_t* cl, volatile uint64_t reps);
+static uint64_t load_0_eventually(int id, volatile cache_line_t* cl, volatile uint64_t reps);
 static uint64_t load_0_eventually_no_pf(volatile cache_line_t* cl);
 
-static void invalidate(volatile cache_line_t* cache_line, uint64_t index, volatile uint64_t reps);
+static void invalidate(int id, volatile cache_line_t* cache_line, uint64_t index, volatile uint64_t reps);
 static uint32_t cas_success_only(volatile cache_line_t* cache_line, volatile uint64_t reps);
-static uint32_t cas(volatile cache_line_t* cache_line, volatile uint64_t reps);
-static uint32_t cas_0_eventually(volatile cache_line_t* cache_line, volatile uint64_t reps);
+static uint32_t cas(int id, volatile cache_line_t* cache_line, volatile uint64_t reps);
+static uint32_t cas_0_eventually(int id, volatile cache_line_t* cache_line, volatile uint64_t reps);
 static uint32_t cas_no_pf(volatile cache_line_t* cache_line, volatile uint64_t reps);
-static uint32_t fai(volatile cache_line_t* cache_line, volatile uint64_t reps);
-static uint8_t tas(volatile cache_line_t* cl, volatile uint64_t reps);
-static uint32_t swap(volatile cache_line_t* cl, volatile uint64_t reps);
+static uint32_t fai(int id, volatile cache_line_t* cache_line, volatile uint64_t reps);
+static uint8_t tas(int id, volatile cache_line_t* cl, volatile uint64_t reps);
+static uint32_t swap(int id, volatile cache_line_t* cl, volatile uint64_t reps);
 
 static size_t parse_size(char* optarg);
 static void create_rand_list_cl(volatile uint64_t* list, size_t n);
@@ -158,9 +158,6 @@ void *run_test(void *arg) {
   ull reps = 0;
   uint64_t sum = 0;
   volatile uint64_t* cl = (volatile uint64_t*) cache_line;
-  B0;
-  PFDINIT(test_reps);
-  B0;
   for (reps = 0; !*task->stop; reps++)
     {
       if (test_flush)
@@ -183,12 +180,12 @@ void *run_test(void *arg) {
 	    switch (task->id % 3)
 	      {
 	      case 0:
-		store_0_eventually(cache_line, reps);
+		store_0_eventually(task->id, cache_line, reps);
 		B1;		/* BARRIER 1 */
 		break;
 	      case 1:
 		B1;		/* BARRIER 1 */
-		store_0_eventually(cache_line, reps);
+		store_0_eventually(task->id, cache_line, reps);
 		break;
 	      default:
 		B1;		/* BARRIER 1 */
@@ -206,12 +203,12 @@ void *run_test(void *arg) {
 	    switch (task->id % 3)
 	      {
 	      case 0:
-		sum += load_0_eventually(cache_line, reps);
+		sum += load_0_eventually(task->id, cache_line, reps);
 		B1;		/* BARRIER 1 */
 		break;
 	      case 1:
 		B1;		/* BARRIER 1 */
-		store_0_eventually(cache_line, reps);
+		store_0_eventually(task->id, cache_line, reps);
 		break;
 	      default:
 		B1;		/* BARRIER 1 */
@@ -229,18 +226,18 @@ void *run_test(void *arg) {
 	    switch (task->id % 4)
 	      {
 	      case 0:
-		sum += load_0_eventually(cache_line, reps);
+		sum += load_0_eventually(task->id, cache_line, reps);
 		B1;			/* BARRIER 1 */
 		B2;			/* BARRIER 2 */
 		break;
 	      case 1:
 		B1;			/* BARRIER 1 */
 		B2;			/* BARRIER 2 */
-		store_0_eventually(cache_line, reps);
+		store_0_eventually(task->id, cache_line, reps);
 		break;
 	      case 2:
 		B1;			/* BARRIER 1 */
-		sum += load_0_eventually(cache_line, reps);
+		sum += load_0_eventually(task->id, cache_line, reps);
 		B2;			/* BARRIER 2 */
 		break;
 	      default:
@@ -257,14 +254,14 @@ void *run_test(void *arg) {
 	      {
 	      case 0:
 		B1;			/* BARRIER 1 */
-		sum += load_0_eventually(cache_line, reps);
+		sum += load_0_eventually(task->id, cache_line, reps);
 		B2;			/* BARRIER 2 */
 		break;
 	      case 1:
-		store_0_eventually(cache_line, reps);
+		store_0_eventually(task->id, cache_line, reps);
 		B1;			/* BARRIER 1 */
 		B2;			/* BARRIER 2 */
-		store_0_eventually_pfd1(cache_line, reps);
+		store_0_eventually_pfd1(task->id, cache_line, reps);
 		break;
 	      default:
 		B1;			/* BARRIER 1 */
@@ -279,15 +276,15 @@ void *run_test(void *arg) {
 	    switch (task->id % 3)
 	      {
 	      case 0:
-		store_0_eventually(cache_line, reps);
+		store_0_eventually(task->id, cache_line, reps);
 		B1;			/* BARRIER 1 */
 		B2;			/* BARRIER 2 */
 		break;
 	      case 1:
 		B1;			/* BARRIER 1 */
-		sum += load_0_eventually(cache_line, reps);
+		sum += load_0_eventually(task->id, cache_line, reps);
 		B2;			/* BARRIER 2 */
-		store_0_eventually_pfd1(cache_line, reps);
+		store_0_eventually_pfd1(task->id, cache_line, reps);
 		break;
 	      default:
 		B1;			/* BARRIER 1 */
@@ -304,14 +301,14 @@ void *run_test(void *arg) {
 	      case 0:
 		B1;
 		/* store_0_eventually(cache_line, reps); */
-		store_0(cache_line, reps);
+		store_0(task->id, cache_line, reps);
 		if (!test_flush)
 		  {
 		    cache_line += test_stride;
 		  }
 		break;
 	      case 1:
-		invalidate(cache_line, 0, reps);
+		invalidate(task->id, cache_line, 0, reps);
 		if (!test_flush)
 		  {
 		    cache_line += test_stride;
@@ -329,12 +326,12 @@ void *run_test(void *arg) {
 	    switch (task->id % 3)
 	      {
 	      case 0:
-		store_0_eventually(cache_line, reps);
+		store_0_eventually(task->id, cache_line, reps);
 		B1;		
 		break;
 	      case 1:
 		B1;			/* BARRIER 1 */
-		sum += load_0_eventually(cache_line, reps);
+		sum += load_0_eventually(task->id, cache_line, reps);
 		break;
 	      default:
 		B1;
@@ -347,7 +344,7 @@ void *run_test(void *arg) {
 	    switch (task->id % 3)
 	      {
 	      case 0:
-		sum += load_0_eventually(cache_line, reps);
+		sum += load_0_eventually(task->id, cache_line, reps);
 		B1;			/* BARRIER 1 */
 
 		if (!test_flush)
@@ -357,7 +354,7 @@ void *run_test(void *arg) {
 		break;
 	      case 1:
 		B1;			/* BARRIER 1 */
-		sum += load_0_eventually(cache_line, reps);
+		sum += load_0_eventually(task->id, cache_line, reps);
 
 		if (!test_flush)
 		  {
@@ -375,19 +372,19 @@ void *run_test(void *arg) {
 	    switch (task->id % 4)
 	      {
 	      case 0:
-		sum += load_0_eventually(cache_line, reps);
+		sum += load_0_eventually(task->id, cache_line, reps);
 		B1;			/* BARRIER 1 */
 		B2;			/* BARRIER 2 */
 		break;
 	      case 1:
 		B1;			/* BARRIER 1 */
-		sum += load_0_eventually(cache_line, reps);
+		sum += load_0_eventually(task->id, cache_line, reps);
 		B2;			/* BARRIER 2 */
 		break;
 	      case 2:
 		B1;			/* BARRIER 1 */
 		B2;			/* BARRIER 2 */
-		sum += load_0_eventually(cache_line, reps);
+		sum += load_0_eventually(task->id, cache_line, reps);
 		break;
 	      default:
 		B1;			/* BARRIER 1 */
@@ -407,19 +404,19 @@ void *run_test(void *arg) {
 	    switch (task->id % 4)
 	      {
 	      case 0:
-		store_0_eventually(cache_line, reps);
+		store_0_eventually(task->id, cache_line, reps);
 		B1;			/* BARRIER 1 */
 		B2;			/* BARRIER 2 */
 		break;
 	      case 1:
 		B1;			/* BARRIER 1 */
-		sum += load_0_eventually(cache_line, reps);
+		sum += load_0_eventually(task->id, cache_line, reps);
 		B2;			/* BARRIER 2 */
 		break;
 	      case 2:
 		B1;			/* BARRIER 1 */
 		B2;			/* BARRIER 2 */
-		sum += load_0_eventually(cache_line, reps);
+		sum += load_0_eventually(task->id, cache_line, reps);
 		break;
 	      default:
 		B1;			/* BARRIER 1 */
@@ -434,10 +431,10 @@ void *run_test(void *arg) {
 	      {
 	      case 0:
 		B1;			/* BARRIER 1 */
-		sum += load_0_eventually(cache_line, reps); 		/* sum += load_0(cache_line, reps); */
+		sum += load_0_eventually(task->id, cache_line, reps); 		/* sum += load_0(cache_line, reps); */
 		break;
 	      case 1:
-		invalidate(cache_line, 0, reps);
+		invalidate(task->id, cache_line, 0, reps);
 		B1;			/* BARRIER 1 */
 		break;
 	      default:
@@ -458,22 +455,22 @@ void *run_test(void *arg) {
           }
 	case CAS: /* 13 */
 	  {
-	    sum += cas_0_eventually(cache_line, reps);
+	    sum += cas_0_eventually(task->id, cache_line, reps);
 	    break;
 	  }
 	case FAI: /* 14 */
 	  {
-	    sum += fai(cache_line, reps);
+	    sum += fai(task->id, cache_line, reps);
 	    break;
 	  }
 	case TAS:		/* 15 */
 	  {
-            sum += tas(cache_line, reps);
+            sum += tas(task->id, cache_line, reps);
 	    break;
 	  }
 	case SWAP: /* 16 */
 	  {
-	    sum += swap(cache_line, reps);
+	    sum += swap(task->id, cache_line, reps);
 	    break;
 	  }
 	case CAS_ON_MODIFIED: /* 17 */
@@ -481,7 +478,7 @@ void *run_test(void *arg) {
 	    switch (task->id % 3)
 	      {
 	      case 0:
-		store_0_eventually(cache_line, reps);
+		store_0_eventually(task->id, cache_line, reps);
 		if (test_ao_success)
 		  {
 		    cache_line->word[0] = reps & 0x01;
@@ -490,7 +487,7 @@ void *run_test(void *arg) {
 		break;
 	      case 1:
 		B1;		/* BARRIER 1 */
-		sum += cas_0_eventually(cache_line, reps);
+		sum += cas_0_eventually(task->id, cache_line, reps);
 		break;
 	      default:
 		B1;		/* BARRIER 1 */
@@ -503,12 +500,12 @@ void *run_test(void *arg) {
 	    switch (task->id % 3)
 	      {
 	      case 0:
-		store_0_eventually(cache_line, reps);
+		store_0_eventually(task->id, cache_line, reps);
 		B1;		/* BARRIER 1 */
 		break;
 	      case 1:
 		B1;		/* BARRIER 1 */
-		sum += fai(cache_line, reps);
+		sum += fai(task->id, cache_line, reps);
 		break;
 	      default:
 		B1;		/* BARRIER 1 */
@@ -521,7 +518,7 @@ void *run_test(void *arg) {
 	    switch (task->id % 3)
 	      {
 	      case 0:
-		store_0_eventually(cache_line, reps);
+		store_0_eventually(task->id, cache_line, reps);
 		if (!test_ao_success)
 		  {
 		    cache_line->word[0] = 0xFFFFFFFF;
@@ -531,7 +528,7 @@ void *run_test(void *arg) {
 		break;
 	      case 1:
 		B1;		/* BARRIER 1 */
-		sum += tas(cache_line, reps);
+		sum += tas(task->id, cache_line, reps);
 		break;
 	      default:
 		B1;		/* BARRIER 1 */
@@ -544,12 +541,12 @@ void *run_test(void *arg) {
 	    switch (task->id % 3)
 	      {
 	      case 0:
-		store_0_eventually(cache_line, reps);
+		store_0_eventually(task->id, cache_line, reps);
 		B1;		/* BARRIER 1 */
 		break;
 	      case 1:
 		B1;		/* BARRIER 1 */
-		sum += swap(cache_line, reps);
+		sum += swap(task->id, cache_line, reps);
 		break;
 	      default:
 		B1;		/* BARRIER 1 */
@@ -562,18 +559,18 @@ void *run_test(void *arg) {
 	    switch (task->id % 4)
 	      {
 	      case 0:
-		sum += load_0_eventually(cache_line, reps);
+		sum += load_0_eventually(task->id, cache_line, reps);
 		B1;		/* BARRIER 1 */
 		B2;		/* BARRIER 2 */
 		break;
 	      case 1:
 		B1;		/* BARRIER 1 */
 		B2;		/* BARRIER 2 */
-		sum += cas_0_eventually(cache_line, reps);
+		sum += cas_0_eventually(task->id, cache_line, reps);
 		break;
 	      case 2:
 		B1;		/* BARRIER 1 */
-		sum += load_0_eventually(cache_line, reps);
+		sum += load_0_eventually(task->id, cache_line, reps);
 		B2;		/* BARRIER 2 */
 		break;
 	      default:
@@ -589,18 +586,18 @@ void *run_test(void *arg) {
 	    switch (task->id % 4)
 	      {
 	      case 0:
-		sum += load_0_eventually(cache_line, reps);
+		sum += load_0_eventually(task->id, cache_line, reps);
 		B1;		/* BARRIER 1 */
 		B2;		/* BARRIER 2 */
 		break;
 	      case 1:
 		B1;		/* BARRIER 1 */
 		B2;		/* BARRIER 2 */
-		sum += fai(cache_line, reps);
+		sum += fai(task->id, cache_line, reps);
 		break;
 	      case 2:
 		B1;		/* BARRIER 1 */
-		sum += load_0_eventually(cache_line, reps);
+		sum += load_0_eventually(task->id, cache_line, reps);
 		B2;		/* BARRIER 2 */
 		break;
 	      default:
@@ -624,18 +621,18 @@ void *run_test(void *arg) {
 		  {
 		    cache_line->word[0] = 0xFFFFFFFF;
 		  }
-		sum += load_0_eventually(cache_line, reps);
+		sum += load_0_eventually(task->id, cache_line, reps);
 		B1;		/* BARRIER 1 */
 		B2;		/* BARRIER 2 */
 		break;
 	      case 1:
 		B1;		/* BARRIER 1 */
 		B2;		/* BARRIER 2 */
-		sum += tas(cache_line, reps);
+		sum += tas(task->id, cache_line, reps);
 		break;
 	      case 2:
 		B1;		/* BARRIER 1 */
-		sum += load_0_eventually(cache_line, reps);
+		sum += load_0_eventually(task->id, cache_line, reps);
 		B2;		/* BARRIER 2 */
 		break;
 	      default:
@@ -651,18 +648,18 @@ void *run_test(void *arg) {
 	    switch (task->id % 4)
 	      {
 	      case 0:
-		sum += load_0_eventually(cache_line, reps);
+		sum += load_0_eventually(task->id, cache_line, reps);
 		B1;		/* BARRIER 1 */
 		B2;		/* BARRIER 2 */
 		break;
 	      case 1:
 		B1;		/* BARRIER 1 */
 		B2;		/* BARRIER 2 */
-		sum += swap(cache_line, reps);
+		sum += swap(task->id, cache_line, reps);
 		break;
 	      case 2:
 		B1;		/* BARRIER 1 */
-		sum += load_0_eventually(cache_line, reps);
+		sum += load_0_eventually(task->id, cache_line, reps);
 		B2;		/* BARRIER 2 */
 		break;
 	      default:
@@ -679,7 +676,7 @@ void *run_test(void *arg) {
 	      {
 	      case 0:
 	      case 1:
-		sum += cas(cache_line, reps);
+		sum += cas(task->id, cache_line, reps);
 		break;
 	      default:
 		sum += cas_no_pf(cache_line, reps);
@@ -693,10 +690,10 @@ void *run_test(void *arg) {
 	      {
 	      case 0:
 		B1;		/* BARRIER 1 */
-		sum += fai(cache_line, reps);
+		sum += fai(task->id, cache_line, reps);
 		break;
 	      case 1:
-		invalidate(cache_line, 0, reps);
+		invalidate(task->id, cache_line, 0, reps);
 		B1;		/* BARRIER 1 */
 		break;
 	      default:
@@ -714,47 +711,47 @@ void *run_test(void *arg) {
 	  {
 	    if (task->id == 0)
 	      {
-		sum += load_0(cache_line, reps);
-		sum += load_0(cache_line, reps);
-		sum += load_0(cache_line, reps);
+		sum += load_0(task->id, cache_line, reps);
+		sum += load_0(task->id, cache_line, reps);
+		sum += load_0(task->id, cache_line, reps);
 	      }
 	    break;
 	  }
 	case LOAD_FROM_MEM_SIZE: /* 28 */
 	  {
-	    sum += load_next(cl, reps);
+	    sum += load_next(task->id, cl, reps);
 	  }
 	  break;
 	case LFENCE:		/* 29 */
-	    PFDI(0);
+	    PFDI(task->id, 0);
 	    _mm_lfence();
-	    PFDO(0, reps);
+	    PFDO(task->id, 0, reps);
 	  break;
 	case SFENCE:		/* 30 */
-	    PFDI(0);
+	    PFDI(task->id, 0);
 	    _mm_sfence();
-	    PFDO(0, reps);
+	    PFDO(task->id, 0, reps);
 	  break;
 	case MFENCE:		/* 31 */
-	    PFDI(0);
+	    PFDI(task->id, 0);
 	    _mm_mfence();
-	    PFDO(0, reps);
+	    PFDO(task->id, 0, reps);
 	  break;
 	case PAUSE:		/* 32 */
-	    PFDI(0);
+	    PFDI(task->id, 0);
 	    _mm_pause();
-	    PFDO(0, reps);
+	    PFDO(task->id, 0, reps);
 	  break;
 	case NOP:		/* 33 */
-	    PFDI(0);
+	    PFDI(task->id, 0);
 	    asm volatile ("nop");
-	    PFDO(0, reps);
+	    PFDO(task->id, 0, reps);
 	  break;
 	case PROFILER:		/* 30 */
 	default:
-	  PFDI(0);
+	  PFDI(task->id, 0);
 	  asm volatile ("");
-	  PFDO(0, reps);
+	  PFDO(task->id, 0, reps);
 	  break;
 	}
       if(test_test != CAS_SUCCESS &&
@@ -1078,6 +1075,9 @@ main(int argc, char **argv)
         printf("Fail to initialize the lock\n");
         return 1;
   }  
+  //B0;
+  PFDINIT(test_reps);
+  //B0;
   for (int i = 0; i < test_threads; i++) {
         pthread_create(&tasks[i].thread, NULL, run_test, &tasks[i]);
   }
@@ -1107,15 +1107,15 @@ cas_success_only(volatile cache_line_t* cl, volatile uint64_t reps) {
 }
 
 uint32_t
-cas(volatile cache_line_t* cl, volatile uint64_t reps)
+cas(int id, volatile cache_line_t* cl, volatile uint64_t reps)
 {
   uint8_t o = reps & 0x1;
   uint8_t no = !o; 
   volatile uint32_t r;
 
-  PFDI(0);
+  PFDI(id, 0);
   r = CAS_U32(cl->word, o, no);
-  PFDO(0, reps);
+  PFDO(id, 0, reps);
 
   return (r == o);
 }
@@ -1132,7 +1132,7 @@ cas_no_pf(volatile cache_line_t* cl, volatile uint64_t reps)
 }
 
 uint32_t
-cas_0_eventually(volatile cache_line_t* cl, volatile uint64_t reps)
+cas_0_eventually(int id, volatile cache_line_t* cl, volatile uint64_t reps)
 {
   uint8_t o = reps & 0x1;
   uint8_t no = !o; 
@@ -1143,9 +1143,9 @@ cas_0_eventually(volatile cache_line_t* cl, volatile uint64_t reps)
     {
       cln = clrand();
       volatile cache_line_t* cl1 = cl + cln;
-      PFDI(0);
+      PFDI(id, 0);
       r = CAS_U32(cl1->word, o, no);
-      PFDO(0, reps);
+      PFDO(id, 0, reps);
     }
   while (cln > 0);
 
@@ -1153,7 +1153,7 @@ cas_0_eventually(volatile cache_line_t* cl, volatile uint64_t reps)
 }
 
 uint32_t
-fai(volatile cache_line_t* cl, volatile uint64_t reps)
+fai(int id, volatile cache_line_t* cl, volatile uint64_t reps)
 {
   volatile uint32_t t = 0;
 
@@ -1162,9 +1162,9 @@ fai(volatile cache_line_t* cl, volatile uint64_t reps)
     {
       cln = clrand();
       volatile cache_line_t* cl1 = cl + cln;
-      PFDI(0);
+      PFDI(id, 0);
       t = FAI_U32(cl1->word);
-      PFDO(0, reps);
+      PFDO(id, 0, reps);
     }
   while (cln > 0);
 
@@ -1172,7 +1172,7 @@ fai(volatile cache_line_t* cl, volatile uint64_t reps)
 }
 
 uint8_t
-tas(volatile cache_line_t* cl, volatile uint64_t reps)
+tas(int id, volatile cache_line_t* cl, volatile uint64_t reps)
 {
   volatile uint8_t r;
 
@@ -1187,9 +1187,9 @@ tas(volatile cache_line_t* cl, volatile uint64_t reps)
       volatile uint8_t* b = (volatile uint8_t*) cl1->word;
 #endif
 
-      PFDI(0);
+      PFDI(id, 0);
       r = TAS_U8(b);
-      PFDO(0, reps);
+      PFDO(id, 0, reps);
     }
   while (cln > 0);
 
@@ -1197,7 +1197,7 @@ tas(volatile cache_line_t* cl, volatile uint64_t reps)
 }
 
 uint32_t
-swap(volatile cache_line_t* cl, volatile uint64_t reps)
+swap(int id, volatile cache_line_t* cl, volatile uint64_t reps)
 {
   volatile uint32_t res;
 
@@ -1206,9 +1206,9 @@ swap(volatile cache_line_t* cl, volatile uint64_t reps)
     {
       cln = clrand();
       volatile cache_line_t* cl1 = cl + cln;
-      PFDI(0);
+      PFDI(id, 0);
       res = SWAP_U32(cl1->word, ID);
-      PFDO(0, reps);
+      PFDO(id, 0, reps);
     }
   while (cln > 0);
 
@@ -1217,27 +1217,27 @@ swap(volatile cache_line_t* cl, volatile uint64_t reps)
 }
 
 void
-store_0(volatile cache_line_t* cl, volatile uint64_t reps)
+store_0(int id, volatile cache_line_t* cl, volatile uint64_t reps)
 {
   if (test_sfence == 0)
     {
-      PFDI(0);
+      PFDI(id, 0);
       cl->word[0] = reps;
-      PFDO(0, reps);
+      PFDO(id, 0, reps);
     }
   else if (test_sfence == 1)
     {
-      PFDI(0);
+      PFDI(id, 0);
       cl->word[0] = reps;
       _mm_sfence();
-      PFDO(0, reps);
+      PFDO(id, 0, reps);
     }
   else if (test_sfence == 2)
     {
-      PFDI(0);
+      PFDI(id, 0);
       cl->word[0] = reps;
       _mm_mfence();
-      PFDO(0, reps);
+      PFDO(id, 0, reps);
     }
 }
 
@@ -1256,158 +1256,158 @@ store_0_no_pf(volatile cache_line_t* cl, volatile uint64_t reps)
 }
 
 static void
-store_0_eventually_sf(volatile cache_line_t* cl, volatile uint64_t reps)
+store_0_eventually_sf(int id, volatile cache_line_t* cl, volatile uint64_t reps)
 {
   volatile uint32_t cln = 0;
   do
     {
       cln = clrand();
       volatile uint32_t *w = &cl[cln].word[0];
-      PFDI(0);
+      PFDI(id, 0);
       w[0] = cln;
       _mm_sfence();
-      PFDO(0, reps);
+      PFDO(id, 0, reps);
     }
   while (cln > 0);
 }
 
 static void
-store_0_eventually_mf(volatile cache_line_t* cl, volatile uint64_t reps)
+store_0_eventually_mf(int id, volatile cache_line_t* cl, volatile uint64_t reps)
 {
   volatile uint32_t cln = 0;
   do
     {
       cln = clrand();
       volatile uint32_t *w = &cl[cln].word[0];
-      PFDI(0);
+      PFDI(id, 0);
       w[0] = cln;
       _mm_mfence();
-      PFDO(0, reps);
+      PFDO(id, 0, reps);
     }
   while (cln > 0);
 }
 
 static void
-store_0_eventually_nf(volatile cache_line_t* cl, volatile uint64_t reps)
+store_0_eventually_nf(int id, volatile cache_line_t* cl, volatile uint64_t reps)
 {
   volatile uint32_t cln = 0;
   do
     {
       cln = clrand();
       volatile uint32_t *w = &cl[cln].word[0];
-      PFDI(0);
+      PFDI(id, 0);
       w[0] = cln;
-      PFDO(0, reps);
+      PFDO(id, 0, reps);
     }
   while (cln > 0);
 }
 
 static void
-store_0_eventually_dw(volatile cache_line_t* cl, volatile uint64_t reps)
+store_0_eventually_dw(int id, volatile cache_line_t* cl, volatile uint64_t reps)
 {
   volatile uint32_t cln = 0;
   do
     {
       cln = clrand();
       volatile uint32_t *w = &cl[cln].word[0];
-      PFDI(0);
+      PFDI(id, 0);
       w[0] = cln;
       w[16] = cln;
-      PFDO(0, reps);
+      PFDO(id, 0, reps);
     }
   while (cln > 0);
 }
 
 void
-store_0_eventually(volatile cache_line_t* cl, volatile uint64_t reps)
+store_0_eventually(int id, volatile cache_line_t* cl, volatile uint64_t reps)
 {
   if (test_sfence == 0)
     {
-      store_0_eventually_nf(cl, reps);
+      store_0_eventually_nf(id, cl, reps);
     }
   else if (test_sfence == 1)
     {
-      store_0_eventually_sf(cl, reps);
+      store_0_eventually_sf(id, cl, reps);
     }
   else if (test_sfence == 2)
     {
-      store_0_eventually_mf(cl, reps);
+      store_0_eventually_mf(id, cl, reps);
     }
   else if (test_sfence == 3)
     {
-      store_0_eventually_dw(cl, reps);
+      store_0_eventually_dw(id, cl, reps);
     }
   /* _mm_mfence(); */
 }
 
 
 static void
-store_0_eventually_pfd1_sf(volatile cache_line_t* cl, volatile uint64_t reps)
+store_0_eventually_pfd1_sf(int id, volatile cache_line_t* cl, volatile uint64_t reps)
 {
   volatile uint32_t cln = 0;
   do
     {
       cln = clrand();
       volatile uint32_t *w = &cl[cln].word[0];
-      PFDI(1);
+      PFDI(id, 1);
       w[0] = cln;
       _mm_sfence();
-      PFDO(1, reps);
+      PFDO(id, 1, reps);
     }
   while (cln > 0);
 }
 
 static void
-store_0_eventually_pfd1_mf(volatile cache_line_t* cl, volatile uint64_t reps)
+store_0_eventually_pfd1_mf(int id, volatile cache_line_t* cl, volatile uint64_t reps)
 {
   volatile uint32_t cln = 0;
   do
     {
       cln = clrand();
       volatile uint32_t *w = &cl[cln].word[0];
-      PFDI(1);
+      PFDI(id, 1);
       w[0] = cln;
       _mm_mfence();
-      PFDO(1, reps);
+      PFDO(id, 1, reps);
     }
   while (cln > 0);
 }
 
 static void
-store_0_eventually_pfd1_nf(volatile cache_line_t* cl, volatile uint64_t reps)
+store_0_eventually_pfd1_nf(int id, volatile cache_line_t* cl, volatile uint64_t reps)
 {
   volatile uint32_t cln = 0;
   do
     {
       cln = clrand();
       volatile uint32_t *w = &cl[cln].word[0];
-      PFDI(1);
+      PFDI(id, 1);
       w[0] = cln;
-      PFDO(1, reps);
+      PFDO(id, 1, reps);
     }
   while (cln > 0);
 }
 
 void
-store_0_eventually_pfd1(volatile cache_line_t* cl, volatile uint64_t reps)
+store_0_eventually_pfd1(int id, volatile cache_line_t* cl, volatile uint64_t reps)
 {
   if (test_sfence == 0)
     {
-      store_0_eventually_pfd1_nf(cl, reps);
+      store_0_eventually_pfd1_nf(id, cl, reps);
     }
   else if (test_sfence == 1)
     {
-      store_0_eventually_pfd1_sf(cl, reps);
+      store_0_eventually_pfd1_sf(id, cl, reps);
     }
   else if (test_sfence == 2)
     {
-      store_0_eventually_pfd1_mf(cl, reps);
+      store_0_eventually_pfd1_mf(id, cl, reps);
     }
   /* _mm_mfence(); */
 }
 
 static uint64_t
-load_0_eventually_lf(volatile cache_line_t* cl, volatile uint64_t reps)
+load_0_eventually_lf(int id, volatile cache_line_t* cl, volatile uint64_t reps)
 {
   volatile uint32_t cln = 0;
   volatile uint64_t val = 0;
@@ -1416,17 +1416,17 @@ load_0_eventually_lf(volatile cache_line_t* cl, volatile uint64_t reps)
     {
       cln = clrand();
       volatile uint32_t* w = &cl[cln].word[0];
-      PFDI(0);
+      PFDI(id, 0);
       val = w[0];
       _mm_lfence();
-      PFDO(0, reps);
+      PFDO(id, 0, reps);
     }
   while (cln > 0);
   return val;
 }
 
 static uint64_t
-load_0_eventually_mf(volatile cache_line_t* cl, volatile uint64_t reps)
+load_0_eventually_mf(int id, volatile cache_line_t* cl, volatile uint64_t reps)
 {
   volatile uint32_t cln = 0;
   volatile uint64_t val = 0;
@@ -1435,17 +1435,17 @@ load_0_eventually_mf(volatile cache_line_t* cl, volatile uint64_t reps)
     {
       cln = clrand();
       volatile uint32_t* w = &cl[cln].word[0];
-      PFDI(0);
+      PFDI(id, 0);
       val = w[0];
       _mm_mfence();
-      PFDO(0, reps);
+      PFDO(id, 0, reps);
     }
   while (cln > 0);
   return val;
 }
 
 static uint64_t
-load_0_eventually_nf(volatile cache_line_t* cl, volatile uint64_t reps)
+load_0_eventually_nf(int id, volatile cache_line_t* cl, volatile uint64_t reps)
 {
   volatile uint32_t cln = 0;
   volatile uint64_t val = 0;
@@ -1454,9 +1454,9 @@ load_0_eventually_nf(volatile cache_line_t* cl, volatile uint64_t reps)
     {
       cln = clrand();
       volatile uint32_t* w = &cl[cln].word[0];
-      PFDI(0);
+      PFDI(id, 0);
       val = w[0];
-      PFDO(0, reps);
+      PFDO(id, 0, reps);
     }
   while (cln > 0);
   return val;
@@ -1464,20 +1464,20 @@ load_0_eventually_nf(volatile cache_line_t* cl, volatile uint64_t reps)
 
 
 uint64_t
-load_0_eventually(volatile cache_line_t* cl, volatile uint64_t reps)
+load_0_eventually(int id, volatile cache_line_t* cl, volatile uint64_t reps)
 {
   uint64_t val = 0;
   if (test_lfence == 0)
     {
-      val = load_0_eventually_nf(cl, reps);
+      val = load_0_eventually_nf(id, cl, reps);
     }
   else if (test_lfence == 1)
     {
-      val = load_0_eventually_lf(cl, reps);
+      val = load_0_eventually_lf(id, cl, reps);
     }
   else if (test_lfence == 2)
     {
-      val = load_0_eventually_mf(cl, reps);
+      val = load_0_eventually_mf(id, cl, reps);
     }
   _mm_mfence();
   return val;
@@ -1501,132 +1501,132 @@ load_0_eventually_no_pf(volatile cache_line_t* cl)
 }
 
 static uint64_t
-load_0_lf(volatile cache_line_t* cl, volatile uint64_t reps)
+load_0_lf(int id, volatile cache_line_t* cl, volatile uint64_t reps)
 {
   volatile uint32_t val = 0;
   volatile uint32_t* p = (volatile uint32_t*) &cl->word[0];
-  PFDI(0);
+  PFDI(id, 0);
   val = p[0];
   _mm_lfence();
-  PFDO(0, reps);
+  PFDO(id, 0, reps);
   return val;
 }
 
 static uint64_t
-load_0_mf(volatile cache_line_t* cl, volatile uint64_t reps)
+load_0_mf(int id, volatile cache_line_t* cl, volatile uint64_t reps)
 {
   volatile uint32_t val = 0;
   volatile uint32_t* p = (volatile uint32_t*) &cl->word[0];
-  PFDI(0);
+  PFDI(id, 0);
   val = p[0];
   _mm_mfence();
-  PFDO(0, reps);
+  PFDO(id, 0, reps);
   return val;
 }
 
 static uint64_t
-load_0_nf(volatile cache_line_t* cl, volatile uint64_t reps)
+load_0_nf(int id, volatile cache_line_t* cl, volatile uint64_t reps)
 {
   volatile uint32_t val = 0;
   volatile uint32_t* p = (volatile uint32_t*) &cl->word[0];
-  PFDI(0);
+  PFDI(id, 0);
   val = p[0];
-  PFDO(0, reps);
+  PFDO(id, 0, reps);
   return val;
 }
 
 
 uint64_t
-load_0(volatile cache_line_t* cl, volatile uint64_t reps)
+load_0(int id, volatile cache_line_t* cl, volatile uint64_t reps)
 {
   uint64_t val = 0;
   if (test_lfence == 0)
     {
-      val = load_0_nf(cl, reps);
+      val = load_0_nf(id, cl, reps);
     }
   else if (test_lfence == 1)
     {
-      val = load_0_lf(cl, reps);
+      val = load_0_lf(id, cl, reps);
     }
   else if (test_lfence == 2)
     {
-      val = load_0_mf(cl, reps);
+      val = load_0_mf(id, cl, reps);
     }
   _mm_mfence();
   return val;
 }
 
 static uint64_t
-load_next_lf(volatile uint64_t* cl, volatile uint64_t reps)
+load_next_lf(int id, volatile uint64_t* cl, volatile uint64_t reps)
 {
   const size_t do_reps = test_cache_line_num;
-  PFDI(0);
+  PFDI(id, 0);
   int i;
   for (i = 0; i < do_reps; i++)
     {
       cl = (uint64_t*) *cl;
       _mm_lfence();
     }
-  PFDOR(0, reps, do_reps);
+  PFDOR(id, 0, reps, do_reps);
   return *cl;
 
 }
 
 static uint64_t
-load_next_mf(volatile uint64_t* cl, volatile uint64_t reps)
+load_next_mf(int id, volatile uint64_t* cl, volatile uint64_t reps)
 {
   const size_t do_reps = test_cache_line_num;
-  PFDI(0);
+  PFDI(id, 0);
   int i;
   for (i = 0; i < do_reps; i++)
     {
       cl = (uint64_t*) *cl;
       _mm_mfence();
     }
-  PFDOR(0, reps, do_reps);
+  PFDOR(id, 0, reps, do_reps);
   return *cl;
 
 }
 
 static uint64_t
-load_next_nf(volatile uint64_t* cl, volatile uint64_t reps)
+load_next_nf(int id, volatile uint64_t* cl, volatile uint64_t reps)
 {
   const size_t do_reps = test_cache_line_num;
-  PFDI(0);
+  PFDI(id, 0);
   int i;
   for (i = 0; i < do_reps; i++)
     {
       cl = (uint64_t*) *cl;
     }
-  PFDOR(0, reps, do_reps);
+  PFDOR(id, 0, reps, do_reps);
   return *cl;
 }
 
 uint64_t
-load_next(volatile uint64_t* cl, volatile uint64_t reps)
+load_next(int id, volatile uint64_t* cl, volatile uint64_t reps)
 {
   uint64_t val = 0;
   if (test_lfence == 0)
     {
-      val = load_next_nf(cl, reps);
+      val = load_next_nf(id, cl, reps);
     }
   else if (test_lfence == 1)
     {
-      val = load_next_lf(cl, reps);
+      val = load_next_lf(id, cl, reps);
     }
   else if (test_lfence == 2)
     {
-      val = load_next_mf(cl, reps);
+      val = load_next_mf(id, cl, reps);
     }
   return val;
 }
 
 void
-invalidate(volatile cache_line_t* cl, uint64_t index, volatile uint64_t reps)
+invalidate(int id, volatile cache_line_t* cl, uint64_t index, volatile uint64_t reps)
 {
-  PFDI(0);
+  PFDI(id, 0);
   _mm_clflush((void*) (cl + index));
-  PFDO(0, reps);
+  PFDO(id, 0, reps);
   _mm_mfence();
 }
 
