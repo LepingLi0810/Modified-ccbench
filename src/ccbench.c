@@ -169,7 +169,8 @@ void *run_test(void *arg) {
 	  _mm_clflush((void*) cache_line);
 	  _mm_mfence();
 	}
-      if(test_test != CAS &&
+      if(test_test != CAS_SUCCESS &&
+         test_test != CAS &&
          test_test != FAI &&
          test_test != TAS &&
          test_test != SWAP) {
@@ -756,7 +757,8 @@ void *run_test(void *arg) {
 	  PFDO(0, reps);
 	  break;
 	}
-      if(test_test != CAS &&
+      if(test_test != CAS_SUCCESS &&
+         test_test != CAS &&
          test_test != FAI &&
          test_test != TAS &&
          test_test != SWAP) {
