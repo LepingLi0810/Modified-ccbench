@@ -162,12 +162,12 @@ extern volatile ticks* pfd_correction;
 
 #  define PFDOR(id, store, entry, reps)					\
   asm volatile ("");							\
-  if (entry == pfd_size[id] / 2) {                                          \
+  if (entry == pfd_size[id] * 3 / 4) {                                          \
     ticks *temp;                                                        \
     uint64_t new_size = pfd_size[id] * 2;                                   \
     temp = (ticks *)calloc(new_size, sizeof(ticks));                    \
     uint64_t i;                                                         \
-    for (i = 0; i < pfd_size[id] / 2; i++) {                                \
+    for (i = 0; i < pfd_size[id] * 3 / 4; i++) {                                \
       temp[i] = pfd_store[id][store][i];                                    \
     }                                                                   \
     free((void *)pfd_store[id][store]);                                     \
