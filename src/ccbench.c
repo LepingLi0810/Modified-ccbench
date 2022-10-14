@@ -122,7 +122,11 @@ void *run_test(void *arg) {
             else
                 CPU_SET(i-8, &cpuset);
         }*/
-        
+  if (test_threads == 1) {
+    cpu = 0;
+    printf("thread %d == cpu %d\n", task->id, cpu);
+    set_cpu(cpu);
+  } else {        
         if (test_placement == Hyperthreading) {
             if (task->id >= (test_threads / 2)) {
                 cpu = (task->id / (test_threads / 2)) + 19 + (task->id % (test_threads / 2));
@@ -154,6 +158,7 @@ void *run_test(void *arg) {
         printf("thread %d = cpu %d\n", task->id, cpu);
 
         set_cpu(cpu);
+    }
   }
   ull reps = 0;
   uint64_t sum = 0;
