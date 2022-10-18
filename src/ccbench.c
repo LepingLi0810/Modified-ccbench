@@ -129,7 +129,8 @@ void *run_test(void *arg) {
   } else {        
         if (test_placement == Hyperthreading) {
             if (task->id >= (test_threads / 2)) {
-                cpu = (task->id / (test_threads / 2)) + 19 + (task->id % (test_threads / 2));
+                //cpu = (task->id / (test_threads / 2)) + 19 + (task->id % (test_threads / 2));
+                cpu = task->id - (test_threads / 2) + 20;
             } else {
                 cpu = task->id;
             }
@@ -152,7 +153,7 @@ void *run_test(void *arg) {
             } while (cpu_status[cpu]);
             cpu_status[cpu] = 1;
             pthread_mutex_unlock(&lock);
-        }else {
+        } else {
             cpu = task->id;
         }
         printf("thread %d = cpu %d\n", task->id, cpu);
