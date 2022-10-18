@@ -785,10 +785,10 @@ void *run_test(void *arg) {
       exit(-1);
   }
 
-  printf("id %02d "
+  printf("id %02d (CPU %d)"
           "operation_executed %llu "
           "schedstat %s",
-          task->id,
+          task->id, cpu,
           task->operation_executed,
           buffer);
   return 0;
@@ -1094,7 +1094,7 @@ main(int argc, char **argv)
       total_executions = total_executions + tasks[i].operation_executed;
   }
 
-  printf("Total Exeuctions = %llu\n", total_executions);
+  printf("Total Executions = %llu\n", total_executions);
   printf("Average atomic execution time(ns) = %f\n", (1000.0 * 1000 * 1000 * test_duration) / total_executions);
   printf("Per thread execution average = %f\n", (1.0 * total_executions)/test_threads);
   
