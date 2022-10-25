@@ -75,7 +75,8 @@ static uint64_t load_0_eventually(int id, volatile cache_line_t* cl, volatile ui
 static uint64_t load_0_eventually_no_pf(volatile cache_line_t* cl);
 
 static void invalidate(int id, volatile cache_line_t* cache_line, uint64_t index, volatile uint64_t reps);
-static uint32_t cas_success_only(volatile cache_line_t* cache_line, volatile uint64_t reps);
+static uint32_t cas_success_only(volatile cache_line_t* cache_line);
+static uint32_t cas_success_different_word(volatile cache_line_t* cache_line, int index);
 static uint32_t cas(int id, volatile cache_line_t* cache_line, volatile uint64_t reps);
 static uint32_t cas_0_eventually(int id, volatile cache_line_t* cache_line, volatile uint64_t reps);
 static uint32_t cas_no_pf(volatile cache_line_t* cache_line, volatile uint64_t reps);
@@ -93,6 +94,8 @@ static void create_rand_list_cl(volatile uint64_t* list, size_t n);
 #define min_cpu 0
 #define max_cpu 39
 
+
+extern volatile ticks*** pfd_store;
 pthread_mutex_t lock;
 volatile int cpu_status[40] = {};
 
@@ -175,6 +178,7 @@ void *run_test(void *arg) {
 	  _mm_mfence();
 	}
       if(test_test != CAS_SUCCESS &&
+         test_test != CAS_SUCCESS_DIFFERENT &&
          test_test != CAS &&
          test_test != FAI &&
          test_test != TAS &&
@@ -458,30 +462,35 @@ void *run_test(void *arg) {
 	  }
         case CAS_SUCCESS: /* 12 */
           {
-            sum += cas_success_only(cache_line, reps);
+            sum += cas_success_only(cache_line);
             break;
           }
-	case CAS: /* 13 */
+        case CAS_SUCCESS_DIFFERENT: /* 13 */
+          {
+            sum += cas_success_different_word(cache_line, task->id);
+            break;
+          }
+	case CAS: /* 14 */
 	  {
 	    sum += cas_0_eventually(task->id, cache_line, reps);
 	    break;
 	  }
-	case FAI: /* 14 */
+	case FAI: /* 15 */
 	  {
 	    sum += fai(task->id, cache_line, reps);
 	    break;
 	  }
-	case TAS:		/* 15 */
+	case TAS:		/* 16 */
 	  {
             sum += tas(task->id, cache_line, reps);
 	    break;
 	  }
-	case SWAP: /* 16 */
+	case SWAP: /* 17 */
 	  {
 	    sum += swap(task->id, cache_line, reps);
 	    break;
 	  }
-	case CAS_ON_MODIFIED: /* 17 */
+	case CAS_ON_MODIFIED: /* 18 */
 	  {
 	    switch (task->id % 3)
 	      {
@@ -503,7 +512,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case FAI_ON_MODIFIED: /* 18 */
+	case FAI_ON_MODIFIED: /* 19 */
 	  {
 	    switch (task->id % 3)
 	      {
@@ -521,7 +530,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case TAS_ON_MODIFIED: /* 19 */
+	case TAS_ON_MODIFIED: /* 20 */
 	  {
 	    switch (task->id % 3)
 	      {
@@ -544,7 +553,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case SWAP_ON_MODIFIED: /* 20 */
+	case SWAP_ON_MODIFIED: /* 21 */
 	  {
 	    switch (task->id % 3)
 	      {
@@ -562,7 +571,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case CAS_ON_SHARED: /* 21 */
+	case CAS_ON_SHARED: /* 22 */
 	  {
 	    switch (task->id % 4)
 	      {
@@ -589,7 +598,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case FAI_ON_SHARED: /* 22 */
+	case FAI_ON_SHARED: /* 23 */
 	  {
 	    switch (task->id % 4)
 	      {
@@ -616,7 +625,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case TAS_ON_SHARED: /* 23 */
+	case TAS_ON_SHARED: /* 24 */
 	  {
 	    switch (task->id % 4)
 	      {
@@ -763,6 +772,7 @@ void *run_test(void *arg) {
 	  break;
 	}
       if(test_test != CAS_SUCCESS &&
+         test_test != CAS_SUCCESS_DIFFERENT &&
          test_test != CAS &&
          test_test != FAI &&
          test_test != TAS &&
@@ -1100,7 +1110,14 @@ main(int argc, char **argv)
   printf("Total Executions = %llu\n", total_executions);
   printf("Average atomic execution time(ns) = %f\n", (1000.0 * 1000 * 1000 * test_duration) / total_executions);
   printf("Per thread execution average = %f\n", (1.0 * total_executions)/test_threads);
-  
+/* 
+  for(int i = 0; i < test_threads; i++) {
+	printf("Latency of thread %d\n", i);
+  	for(int j = 0; j < 10; j++) {
+		printf("latenchy %d: %d\n", j, pfd_store[0][i][j]);
+	}
+  }
+*/
   cache_line_close(ID, "cache_line");
   barriers_term(ID);
   return 0;
@@ -1108,9 +1125,19 @@ main(int argc, char **argv)
 }
 
 uint32_t
-cas_success_only(volatile cache_line_t* cl, volatile uint64_t reps) {
+cas_success_only(volatile cache_line_t* cl) {
   while (!__sync_bool_compare_and_swap(cl->word, 0, 1));
   __sync_bool_compare_and_swap(cl->word, 1, 0);
+  return 1;
+}
+
+uint32_t 
+cas_success_different_word(volatile cache_line_t* cl, int index) {
+  volatile uint32_t* address = cl->word + index;
+  //printf("cl-word: %p\n", cl->word);
+  //printf("new: %p\n", address);
+  while (!__sync_bool_compare_and_swap(address, 0, 1));
+  __sync_bool_compare_and_swap(address, 1, 0);
   return 1;
 }
 
@@ -1691,7 +1718,6 @@ cache_line_open()
 
 
   cache_line->word[0] = 0;
-
 #else	 /* !__tile__ ****************************************************************************************/
   char keyF[100];
   sprintf(keyF, CACHE_LINE_MEM_FILE);
@@ -1728,16 +1754,19 @@ cache_line_open()
       perror("cache_line = NULL\n");
       exit(134);
     }
-
+  for(int i = 0; i < 16; i++) {
+    cache_line->word[i] = 0;
+  }
 #endif  /* __tile ********************************************************************************************/
   memset((void*) cache_line, '1', size);
-
   if (ID == 0)
     {
       uint32_t cl;
       for (cl = 0; cl < test_cache_line_num; cl++)
 	{
-	  cache_line[cl].word[0] = 0;
+          for(int i = 0; i < 40; i++) {
+	    cache_line[cl].word[i] = 0;
+          }
 	  _mm_clflush((void*) (cache_line + cl));
 	}
 
@@ -1745,8 +1774,6 @@ cache_line_open()
 	{
 	  create_rand_list_cl((volatile uint64_t*) cache_line, test_mem_size / sizeof(uint64_t));
 	}
-
-
     }
 
   _mm_mfence();

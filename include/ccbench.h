@@ -73,7 +73,7 @@ extern cpu_set_t cpus;
 
 typedef struct cache_line
 {
-  volatile uint32_t word[16];
+  volatile uint32_t word[40];
 } cache_line_t;
 
 #define CACHE_LINE_NUM      1024*1024 /* power of 2 pls */
@@ -99,6 +99,7 @@ typedef enum
     LOAD_FROM_OWNED,
     LOAD_FROM_INVALID,
     CAS_SUCCESS,
+    CAS_SUCCESS_DIFFERENT,
     CAS,
     FAI,
     TAS,
@@ -139,6 +140,7 @@ const char* moesi_type_des[] =
     "LOAD_FROM_OWNED",
     "LOAD_FROM_INVALID",
     "CAS_SUCCESS",
+    "CAS_SUCCESS_DIFFERENT",
     "CAS",
     "FAI",
     "TAS",
