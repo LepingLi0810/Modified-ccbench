@@ -75,8 +75,8 @@ static uint64_t load_0_eventually(int id, volatile cache_line_t* cl, volatile ui
 static uint64_t load_0_eventually_no_pf(volatile cache_line_t* cl);
 
 static void invalidate(int id, volatile cache_line_t* cache_line, uint64_t index, volatile uint64_t reps);
+static uint32_t cas_different_word(volatile cache_line_t* cache_line, int index);
 static uint32_t cas_success_only(volatile cache_line_t* cache_line);
-static uint32_t cas_success_different_word(volatile cache_line_t* cache_line, int index);
 static uint32_t cas(int id, volatile cache_line_t* cache_line, volatile uint64_t reps);
 static uint32_t cas_0_eventually(int id, volatile cache_line_t* cache_line, volatile uint64_t reps);
 static uint32_t cas_no_pf(volatile cache_line_t* cache_line, volatile uint64_t reps);
@@ -95,9 +95,9 @@ static void create_rand_list_cl(volatile uint64_t* list, size_t n);
 #define max_cpu 39
 
 
-extern volatile ticks*** pfd_store;
 pthread_mutex_t lock;
 volatile int cpu_status[40] = {};
+volatile cache_line_t** cache_lines;
 
 volatile cache_line_t* cache_line;
 
@@ -166,6 +166,9 @@ void *run_test(void *arg) {
         set_cpu(cpu);
     }
   }
+  if(test_test == CAS_DIFFERENT_LINE) {
+    printf("thread %d has cache line %p\n", task->id, cache_lines[task->id]);
+  }
   ull reps = 0;
   uint64_t sum = 0;
   volatile uint64_t* cl = (volatile uint64_t*) cache_line;
@@ -178,7 +181,8 @@ void *run_test(void *arg) {
 	  _mm_mfence();
 	}
       if(test_test != CAS_SUCCESS &&
-         test_test != CAS_SUCCESS_DIFFERENT &&
+         test_test != CAS_DIFFERENT_WORD &&
+         test_test != CAS_DIFFERENT_LINE &&
          test_test != CAS &&
          test_test != FAI &&
          test_test != TAS &&
@@ -189,7 +193,7 @@ void *run_test(void *arg) {
 	{
 	case STORE_ON_MODIFIED: /* 0 */
 	  {  
-	    switch (task->id % 3)
+	    switch (task->id % 2)
 	      {
 	      case 0:
 		store_0_eventually(task->id, cache_line, reps);
@@ -212,7 +216,7 @@ void *run_test(void *arg) {
 	  }
 	case STORE_ON_EXCLUSIVE: /* 2 */
 	  {
-	    switch (task->id % 3)
+	    switch (task->id % 2)
 	      {
 	      case 0:
 		sum += load_0_eventually(task->id, cache_line, reps);
@@ -465,14 +469,19 @@ void *run_test(void *arg) {
             sum += cas_success_only(cache_line);
             break;
           }
-        case CAS_SUCCESS_DIFFERENT: /* 13 */
+        case CAS_DIFFERENT_WORD: /* 13 */
           {
-            sum += cas_success_different_word(cache_line, task->id);
+            sum += cas_different_word(cache_line, task->id);
+            break;
+          }
+        case CAS_DIFFERENT_LINE:
+          {
+            sum += cas_success_only(cache_lines[task->id]);
             break;
           }
 	case CAS: /* 14 */
 	  {
-	    sum += cas_0_eventually(task->id, cache_line, reps);
+	    sum += cas(task->id, cache_line, reps);
 	    break;
 	  }
 	case FAI: /* 15 */
@@ -772,7 +781,8 @@ void *run_test(void *arg) {
 	  break;
 	}
       if(test_test != CAS_SUCCESS &&
-         test_test != CAS_SUCCESS_DIFFERENT &&
+         test_test != CAS_DIFFERENT_WORD &&
+         test_test != CAS_DIFFERENT_LINE &&
          test_test != CAS &&
          test_test != FAI &&
          test_test != TAS &&
@@ -1071,8 +1081,14 @@ main(int argc, char **argv)
 
   barriers_init(test_cores);
   seeds = seed_rand();
-
-  cache_line = cache_line_open();
+  if(test_test != CAS_DIFFERENT_LINE) {
+    cache_line = cache_line_open();
+  } else {
+    cache_lines = (volatile cache_line_t **)malloc(test_threads * sizeof(cache_line_t *));
+    for(int i = 0; i < test_threads; i++) {
+      cache_lines[i] = cache_line_open();
+    }
+  }
 #if defined(__tile__)
   tmc_cmem_init(0);		/*   initialize shared memory */
 #endif  /* TILERA */
@@ -1110,14 +1126,11 @@ main(int argc, char **argv)
   printf("Total Executions = %llu\n", total_executions);
   printf("Average atomic execution time(ns) = %f\n", (1000.0 * 1000 * 1000 * test_duration) / total_executions);
   printf("Per thread execution average = %f\n", (1.0 * total_executions)/test_threads);
-/* 
-  for(int i = 0; i < test_threads; i++) {
-	printf("Latency of thread %d\n", i);
-  	for(int j = 0; j < 10; j++) {
-		printf("latenchy %d: %d\n", j, pfd_store[0][i][j]);
-	}
-  }
-*/
+ 
+  //printLatency();
+  char path[20];
+  strcpy(path, moesi_type_des[test_test]);
+  printLatencyToFile(path);
   cache_line_close(ID, "cache_line");
   barriers_term(ID);
   return 0;
@@ -1132,10 +1145,9 @@ cas_success_only(volatile cache_line_t* cl) {
 }
 
 uint32_t 
-cas_success_different_word(volatile cache_line_t* cl, int index) {
+cas_different_word(volatile cache_line_t* cl, int index) {
   volatile uint32_t* address = cl->word + index;
   //printf("cl-word: %p\n", cl->word);
-  //printf("new: %p\n", address);
   while (!__sync_bool_compare_and_swap(address, 0, 1));
   __sync_bool_compare_and_swap(address, 1, 0);
   return 1;

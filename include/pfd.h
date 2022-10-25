@@ -40,6 +40,9 @@ extern volatile uint64_t *pfd_size;
 
 typedef uint64_t ticks;
 
+void printLatency(void);
+void printLatencyToFile(char *);
+
 #if defined(__i386__)
 static inline ticks 
 getticks(void) 

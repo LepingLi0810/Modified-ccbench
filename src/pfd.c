@@ -30,6 +30,7 @@
 #include "pfd.h"
 #include <math.h>
 #include "atomic_ops.h"
+#include "string.h"
 
 volatile ticks*** pfd_store;
 volatile ticks** _pfd_s;
@@ -91,8 +92,7 @@ pfd_store_init(uint32_t num_entries)
   
   if (std_pp[i] > PFD_CORRECTION_CONF)
     {
-      if (print_warning++ == 1)	/* print warning if 2 failed attempts */
-	{
+      if (print_warning++ == 1)	{ /* print warning if 2 failed attempts */
 	  printf("* warning: avg pfd correction is %.1f with std deviation: %.1f%%. Recalculating.\n", 
 		 ad[i].avg, std_pp[i]);
 	}
@@ -122,6 +122,30 @@ pfd_store_init(uint32_t num_entries)
   
   printf("* set pfd correction: %llu (std deviation: %.1f%%)\n\n", (long long unsigned int) pfd_correction[i], std_pp[i]);
   }
+}
+
+void printLatency(void) {
+  for(int i = 0; i < test_threads; i++) {
+    printf("thread %d\n", i);
+    for(int j = 0; j < 10; j++) {
+        printf("%ld  ", pfd_store[i][0][j]);
+    }
+    printf("\n");
+  }
+}
+
+void printLatencyToFile(char *path) {
+  strcat(path, ".csv");
+  FILE *fp = fopen(path, "w+");
+  fprintf(fp, "ID, Latency\n");
+  for(int i = 0; i < test_threads; i++) {
+    fprintf(fp, "%d", i);
+    for(int j = 0; pfd_store[i][0][j]; j++) {
+       fprintf(fp, ",%ld", pfd_store[i][0][j]);
+    }
+    fprintf(fp, "\n");
+  }
+  fclose(fp);
 }
 
 static inline 
