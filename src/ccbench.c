@@ -494,77 +494,77 @@ void *run_test(void *arg) {
             sum += cas_different_word(cache_line, task->id);
             break;
           }
-        case CAS_DIFFERENT_LINE:
+        case CAS_DIFFERENT_LINE: /* 14 */
           {
             sum += cas_success_only(cache_lines[task->id]);
             break;
           }
-        case FAI_SUCCESS: /* 14 */
+        case FAI_SUCCESS: /* 15 */
 	  {
 	    sum += fai_success_only(cache_line);
 	    break;
 	  }
-        case FAI_DIFFERENT_WORD: /* 14 */
+        case FAI_DIFFERENT_WORD: /* 16 */
 	  {
 	    sum += fai_different_word(cache_line, task->id);
 	    break;
 	  }
-        case FAI_DIFFERENT_LINE: /* 14 */
+        case FAI_DIFFERENT_LINE: /* 17 */
 	  {
 	    sum += fai_success_only(cache_lines[task->id]);
 	    break;
 	  }
-        case TAS_SUCCESS: /* 14 */
+        case TAS_SUCCESS: /* 18 */
 	  {
 	    sum += tas_success_only(cache_line);
 	    break;
 	  }
-        case TAS_DIFFERENT_WORD: /* 14 */
+        case TAS_DIFFERENT_WORD: /* 19 */
 	  {
 	    sum += tas_different_word(cache_line, task->id);
 	    break;
 	  }
-        case TAS_DIFFERENT_LINE: /* 14 */
+        case TAS_DIFFERENT_LINE: /* 20 */
 	  {
 	    sum += tas_success_only(cache_lines[task->id]);
 	    break;
 	  }
-        case SWAP_SUCCESS: /* 14 */
+        case SWAP_SUCCESS: /* 21 */
 	  {
 	    sum += swap_success_only(cache_line);
 	    break;
 	  }
-        case SWAP_DIFFERENT_WORD: /* 14 */
+        case SWAP_DIFFERENT_WORD: /* 22 */
 	  {
 	    sum += swap_different_word(cache_line, task->id);
 	    break;
 	  }
-        case SWAP_DIFFERENT_LINE: /* 14 */
+        case SWAP_DIFFERENT_LINE: /* 23 */
 	  {
 	    sum += swap_success_only(cache_lines[task->id]);
 	    break;
 	  }
-	case CAS: /* 14 */
+	case CAS: /* 24 */
 	  {
 	    sum += cas(task->id, cache_line, reps);
 	    break;
 	  }
-	case FAI: /* 15 */
+	case FAI: /* 25 */
 	  {
 	    sum += fai(task->id, cache_line, reps);
 	    break;
 	  }
-	case TAS:		/* 16 */
+	case TAS:		/* 26 */
 	  {
             sum += tas(task->id, cache_line, reps);
 	    break;
 	  }
-	case SWAP: /* 17 */
+	case SWAP: /* 27 */
 	  {
 	    sum += swap(task->id, cache_line, reps);
 	    break;
 	  }
-	case CAS_ON_MODIFIED: /* 18 */
+	case CAS_ON_MODIFIED: /* 28 */
 	  {
 	    switch (task->id % 3)
 	      {
@@ -586,7 +586,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case FAI_ON_MODIFIED: /* 19 */
+	case FAI_ON_MODIFIED: /* 29 */
 	  {
 	    switch (task->id % 3)
 	      {
@@ -604,7 +604,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case TAS_ON_MODIFIED: /* 20 */
+	case TAS_ON_MODIFIED: /* 30 */
 	  {
 	    switch (task->id % 3)
 	      {
@@ -627,7 +627,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case SWAP_ON_MODIFIED: /* 21 */
+	case SWAP_ON_MODIFIED: /* 31 */
 	  {
 	    switch (task->id % 3)
 	      {
@@ -645,7 +645,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case CAS_ON_SHARED: /* 22 */
+	case CAS_ON_SHARED: /* 32 */
 	  {
 	    switch (task->id % 4)
 	      {
@@ -672,7 +672,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case FAI_ON_SHARED: /* 23 */
+	case FAI_ON_SHARED: /* 33 */
 	  {
 	    switch (task->id % 4)
 	      {
@@ -699,7 +699,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case TAS_ON_SHARED: /* 24 */
+	case TAS_ON_SHARED: /* 34 */
 	  {
 	    switch (task->id % 4)
 	      {
@@ -734,7 +734,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case SWAP_ON_SHARED: /* 24 */
+	case SWAP_ON_SHARED: /* 35 */
 	  {
 	    switch (task->id % 4)
 	      {
@@ -761,7 +761,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case CAS_CONCURRENT: /* 25 */
+	case CAS_CONCURRENT: /* 36 */
 	  {
 	    switch (task->id % 3)
 	      {
@@ -775,7 +775,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case FAI_ON_INVALID:	/* 26 */
+	case FAI_ON_INVALID:	/* 37 */
 	  {
 	    switch (task->id % 3)
 	      {
@@ -798,7 +798,7 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case LOAD_FROM_L1:	/* 27 */
+	case LOAD_FROM_L1:	/* 38 */
 	  {
 	    if (task->id == 0)
 	      {
@@ -808,37 +808,37 @@ void *run_test(void *arg) {
 	      }
 	    break;
 	  }
-	case LOAD_FROM_MEM_SIZE: /* 28 */
+	case LOAD_FROM_MEM_SIZE: /* 39 */
 	  {
 	    sum += load_next(task->id, cl, reps);
 	  }
 	  break;
-	case LFENCE:		/* 29 */
+	case LFENCE:		/* 40 */
 	    PFDI(task->id, 0);
 	    _mm_lfence();
 	    PFDO(task->id, 0, reps);
 	  break;
-	case SFENCE:		/* 30 */
+	case SFENCE:		/* 41 */
 	    PFDI(task->id, 0);
 	    _mm_sfence();
 	    PFDO(task->id, 0, reps);
 	  break;
-	case MFENCE:		/* 31 */
+	case MFENCE:		/* 42 */
 	    PFDI(task->id, 0);
 	    _mm_mfence();
 	    PFDO(task->id, 0, reps);
 	  break;
-	case PAUSE:		/* 32 */
+	case PAUSE:		/* 43 */
 	    PFDI(task->id, 0);
 	    _mm_pause();
 	    PFDO(task->id, 0, reps);
 	  break;
-	case NOP:		/* 33 */
+	case NOP:		/* 44 */
 	    PFDI(task->id, 0);
 	    asm volatile ("nop");
 	    PFDO(task->id, 0, reps);
 	  break;
-	case PROFILER:		/* 30 */
+	case PROFILER:		/* 45 */
 	default:
 	  PFDI(task->id, 0);
 	  asm volatile ("");
