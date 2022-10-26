@@ -75,14 +75,20 @@ static uint64_t load_0_eventually(int id, volatile cache_line_t* cl, volatile ui
 static uint64_t load_0_eventually_no_pf(volatile cache_line_t* cl);
 
 static void invalidate(int id, volatile cache_line_t* cache_line, uint64_t index, volatile uint64_t reps);
-static uint32_t cas_different_word(volatile cache_line_t* cache_line, int index);
-static uint32_t cas_success_only(volatile cache_line_t* cache_line);
+static uint32_t cas_different_word(volatile cache_line_t* cl, int index);
+static uint32_t cas_success_only(volatile cache_line_t* cl);
 static uint32_t cas(int id, volatile cache_line_t* cache_line, volatile uint64_t reps);
 static uint32_t cas_0_eventually(int id, volatile cache_line_t* cache_line, volatile uint64_t reps);
 static uint32_t cas_no_pf(volatile cache_line_t* cache_line, volatile uint64_t reps);
 static uint32_t fai(int id, volatile cache_line_t* cache_line, volatile uint64_t reps);
+static uint32_t fai_different_word(volatile cache_line_t* cl, int index);
+static uint32_t fai_success_only(volatile cache_line_t* cl);
 static uint8_t tas(int id, volatile cache_line_t* cl, volatile uint64_t reps);
+static uint32_t tas_different_word(volatile cache_line_t* cl, int index);
+static uint32_t tas_success_only(volatile cache_line_t* cl);
 static uint32_t swap(int id, volatile cache_line_t* cl, volatile uint64_t reps);
+static uint32_t swap_different_word(volatile cache_line_t* cl, int index);
+static uint32_t swap_success_only(volatile cache_line_t* cl);
 
 static size_t parse_size(char* optarg);
 static void create_rand_list_cl(volatile uint64_t* list, size_t n);
@@ -95,6 +101,7 @@ static void create_rand_list_cl(volatile uint64_t* list, size_t n);
 #define max_cpu 39
 
 
+volatile uint64_t *executions;
 pthread_mutex_t lock;
 volatile int cpu_status[40] = {};
 volatile cache_line_t** cache_lines;
@@ -132,8 +139,8 @@ void *run_test(void *arg) {
   } else {        
         if (test_placement == Hyperthreading) {
             if (task->id >= (test_threads / 2)) {
-                //cpu = (task->id / (test_threads / 2)) + 19 + (task->id % (test_threads / 2));
-                cpu = task->id - (test_threads / 2) + 20;
+                cpu = (task->id / (test_threads / 2)) + 19 + (task->id % (test_threads / 2));
+                //cpu = task->id - (test_threads / 2) + 20;
             } else {
                 cpu = task->id;
             }
@@ -147,10 +154,15 @@ void *run_test(void *arg) {
         } else if (test_placement == Inter_socket) {
             if ((task->id) >= (test_threads / 2)) {
                 //cpu = ((task->id % 20) / (test_threads / 2)) + 9 + (task->id % 20  % (test_threads / 2));
-                cpu = task->id - (test_threads / 2) + 10;
+                cpu = task->id - (test_threads / 2) + 10 + 10 * ((task->id + 10 - test_threads / 2)/ 20);
             } else {
-                cpu = task->id;
+                cpu = (task->id % 10) + 20 * (task->id / 10);
             }
+            //if(task->id % 2) {
+	        //cpu = 10 + (task->id / 20) * 20 + (task->id / 2);
+            //} else {
+                //cpu = (task->id / 20) * 20 + (task->id / 2);
+            //}
         } else if (test_placement == Random) {
             pthread_mutex_lock(&lock);
             do {
@@ -166,7 +178,10 @@ void *run_test(void *arg) {
         set_cpu(cpu);
     }
   }
-  if(test_test == CAS_DIFFERENT_LINE) {
+  if(test_test == CAS_DIFFERENT_LINE ||
+     test_test == FAI_DIFFERENT_LINE ||
+     test_test == TAS_DIFFERENT_LINE ||
+     test_test == SWAP_DIFFERENT_LINE) {
     printf("thread %d has cache line %p\n", task->id, cache_lines[task->id]);
   }
   ull reps = 0;
@@ -183,10 +198,15 @@ void *run_test(void *arg) {
       if(test_test != CAS_SUCCESS &&
          test_test != CAS_DIFFERENT_WORD &&
          test_test != CAS_DIFFERENT_LINE &&
-         test_test != CAS &&
-         test_test != FAI &&
-         test_test != TAS &&
-         test_test != SWAP) {
+         test_test != FAI_SUCCESS &&
+         test_test != FAI_DIFFERENT_WORD &&
+         test_test != FAI_DIFFERENT_LINE &&
+         test_test != TAS_SUCCESS &&
+         test_test != TAS_DIFFERENT_WORD &&
+         test_test != TAS_DIFFERENT_LINE &&
+         test_test != SWAP_SUCCESS &&
+         test_test != SWAP_DIFFERENT_WORD &&
+         test_test != SWAP_DIFFERENT_LINE) {
           B0;			/* BARRIER 0 */
       }
       switch (test_test)
@@ -479,6 +499,51 @@ void *run_test(void *arg) {
             sum += cas_success_only(cache_lines[task->id]);
             break;
           }
+        case FAI_SUCCESS: /* 14 */
+	  {
+	    sum += fai_success_only(cache_line);
+	    break;
+	  }
+        case FAI_DIFFERENT_WORD: /* 14 */
+	  {
+	    sum += fai_different_word(cache_line, task->id);
+	    break;
+	  }
+        case FAI_DIFFERENT_LINE: /* 14 */
+	  {
+	    sum += fai_success_only(cache_lines[task->id]);
+	    break;
+	  }
+        case TAS_SUCCESS: /* 14 */
+	  {
+	    sum += tas_success_only(cache_line);
+	    break;
+	  }
+        case TAS_DIFFERENT_WORD: /* 14 */
+	  {
+	    sum += tas_different_word(cache_line, task->id);
+	    break;
+	  }
+        case TAS_DIFFERENT_LINE: /* 14 */
+	  {
+	    sum += tas_success_only(cache_lines[task->id]);
+	    break;
+	  }
+        case SWAP_SUCCESS: /* 14 */
+	  {
+	    sum += swap_success_only(cache_line);
+	    break;
+	  }
+        case SWAP_DIFFERENT_WORD: /* 14 */
+	  {
+	    sum += swap_different_word(cache_line, task->id);
+	    break;
+	  }
+        case SWAP_DIFFERENT_LINE: /* 14 */
+	  {
+	    sum += swap_success_only(cache_lines[task->id]);
+	    break;
+	  }
 	case CAS: /* 14 */
 	  {
 	    sum += cas(task->id, cache_line, reps);
@@ -783,10 +848,15 @@ void *run_test(void *arg) {
       if(test_test != CAS_SUCCESS &&
          test_test != CAS_DIFFERENT_WORD &&
          test_test != CAS_DIFFERENT_LINE &&
-         test_test != CAS &&
-         test_test != FAI &&
-         test_test != TAS &&
-         test_test != SWAP) {
+         test_test != FAI_SUCCESS &&
+         test_test != FAI_DIFFERENT_WORD &&
+         test_test != FAI_DIFFERENT_LINE &&
+         test_test != TAS_SUCCESS &&
+         test_test != TAS_DIFFERENT_WORD &&
+         test_test != TAS_DIFFERENT_LINE &&
+         test_test != SWAP_SUCCESS &&
+         test_test != SWAP_DIFFERENT_WORD &&
+         test_test != SWAP_DIFFERENT_LINE) {
           B3;			/* BARRIER 3 */
       }
     }
@@ -807,7 +877,7 @@ void *run_test(void *arg) {
       perror("read");
       exit(-1);
   }
-
+  executions[task->id] = task->operation_executed;
   printf("id %02d (CPU %d)"
           "operation_executed %llu "
           "schedstat %s",
@@ -1081,7 +1151,10 @@ main(int argc, char **argv)
 
   barriers_init(test_cores);
   seeds = seed_rand();
-  if(test_test != CAS_DIFFERENT_LINE) {
+  if(test_test != CAS_DIFFERENT_LINE &&
+     test_test != FAI_DIFFERENT_LINE &&
+     test_test != TAS_DIFFERENT_LINE &&
+     test_test != SWAP_DIFFERENT_LINE) {
     cache_line = cache_line_open();
   } else {
     cache_lines = (volatile cache_line_t **)malloc(test_threads * sizeof(cache_line_t *));
@@ -1092,7 +1165,7 @@ main(int argc, char **argv)
 #if defined(__tile__)
   tmc_cmem_init(0);		/*   initialize shared memory */
 #endif  /* TILERA */
-
+  executions = (volatile uint64_t *)malloc(test_threads * sizeof(uint64_t));
   int stop __attribute__((aligned (64))) = 0;
   ull total_executions = 0;
   task_t *tasks = malloc(sizeof(task_t) * test_threads);
@@ -1199,6 +1272,21 @@ cas_0_eventually(int id, volatile cache_line_t* cl, volatile uint64_t reps)
   return (r == o);
 }
 
+uint32_t fai_success_only(volatile cache_line_t* cl)
+{
+  while (!__sync_fetch_and_add(cl->word, 1));
+  __sync_fetch_and_sub(cl->word, 1);
+  return 1;
+}
+
+uint32_t fai_different_word(volatile cache_line_t* cl, int index)
+{
+  volatile uint32_t* address = cl->word + index;
+  while (!__sync_fetch_and_add(address, 1));
+  __sync_fetch_and_sub(address, 1);
+  return 1;
+}
+
 uint32_t
 fai(int id, volatile cache_line_t* cl, volatile uint64_t reps)
 {
@@ -1216,6 +1304,21 @@ fai(int id, volatile cache_line_t* cl, volatile uint64_t reps)
   while (cln > 0);
 
   return t;
+}
+
+uint32_t tas_success_only(volatile cache_line_t* cl)
+{
+  while (!__sync_lock_test_and_set(cl->word, 1));
+  __sync_lock_release(cl->word);
+  return 1;
+}
+
+uint32_t tas_different_word(volatile cache_line_t* cl, int index)
+{
+  volatile uint32_t* address = cl->word + index;
+  while (!__sync_lock_test_and_set(address, 1));
+  __sync_lock_release(address);
+  return 1;
 }
 
 uint8_t
@@ -1241,6 +1344,21 @@ tas(int id, volatile cache_line_t* cl, volatile uint64_t reps)
   while (cln > 0);
 
   return (r != 255);
+}
+
+uint32_t swap_success_only(volatile cache_line_t* cl)
+{
+  while (!SWAP_U32(cl->word, 1));
+  SWAP_U32(cl->word, 0);
+  return 1;
+}
+
+uint32_t swap_different_word(volatile cache_line_t* cl, int index)
+{
+  volatile uint32_t* address = cl->word + index;
+  while (!SWAP_U32(address, 1));
+  SWAP_U32(address, 0);
+  return 1;
 }
 
 uint32_t
