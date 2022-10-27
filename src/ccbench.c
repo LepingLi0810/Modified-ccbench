@@ -28,7 +28,7 @@
  */
 
 #include "ccbench.h"
-//#include "rdtsc.h"
+#include <sys/stat.h>
 
 #define gettid() syscall(SYS_gettid)
 
@@ -101,7 +101,6 @@ static void create_rand_list_cl(volatile uint64_t* list, size_t n);
 #define max_cpu 39
 
 
-volatile uint64_t *executions;
 pthread_mutex_t lock;
 volatile int cpu_status[40] = {};
 volatile cache_line_t** cache_lines;
@@ -877,7 +876,6 @@ void *run_test(void *arg) {
       perror("read");
       exit(-1);
   }
-  executions[task->id] = task->operation_executed;
   printf("id %02d (CPU %d)"
           "operation_executed %llu "
           "schedstat %s",
@@ -1165,7 +1163,6 @@ main(int argc, char **argv)
 #if defined(__tile__)
   tmc_cmem_init(0);		/*   initialize shared memory */
 #endif  /* TILERA */
-  executions = (volatile uint64_t *)malloc(test_threads * sizeof(uint64_t));
   int stop __attribute__((aligned (64))) = 0;
   ull total_executions = 0;
   task_t *tasks = malloc(sizeof(task_t) * test_threads);
@@ -1190,20 +1187,53 @@ main(int argc, char **argv)
   }
   sleep(test_duration);
   stop = 1;
+  double min_executions = 99999999999;
+  double max_executions = 0;
 
   for (int i = 0; i < test_threads; i++) {
       pthread_join(tasks[i].thread, NULL);
       total_executions = total_executions + tasks[i].operation_executed;
+      if(tasks[i].operation_executed > max_executions) max_executions = tasks[i].operation_executed;
+      if(tasks[i].operation_executed < min_executions) min_executions = tasks[i].operation_executed;
+
   }
+  double average_executions = (1.0 * total_executions) / test_threads;
 
   printf("Total Executions = %llu\n", total_executions);
   printf("Average atomic execution time(ns) = %f\n", (1000.0 * 1000 * 1000 * test_duration) / total_executions);
-  printf("Per thread execution average = %f\n", (1.0 * total_executions)/test_threads);
- 
+  printf("Per thread execution average = %f\n", average_executions);
+  printf("Maximum executions: %f\n", max_executions);
+  printf("Minimum executions: %f\n", min_executions); 
   //printLatency();
-  char path[20];
-  strcpy(path, moesi_type_des[test_test]);
+  struct stat st = {0};
+  if(stat("Data", &st) == -1) {
+    mkdir("Data", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  }
+  char path[30] = "Data/";
+  strcat(path, moesi_type_des[test_test]);
   printLatencyToFile(path);
+
+  //int minMHz = 1200;
+  //int minCycle = 1200000000;
+  //int atomic_operation_number = minCycle / 425 * test_duration;
+  //printf("%d\n", atomic_operation_number);
+
+  double *optimal_executions = (double *)malloc(test_threads * sizeof(double));
+  for(int i = 0; i < test_threads; i++) {
+    optimal_executions[i] = tasks[i].operation_executed / max_executions;
+    //printf("%f\n", optimal_executions[i]);
+  }
+  double fairness_index = 0;
+  double denominator = 0;
+  double nominator = 0;
+  for(int i = 0; i < test_threads; i++) {
+    denominator += (tasks[i].operation_executed / optimal_executions[i]) * (tasks[i].operation_executed / optimal_executions[i]);
+    nominator += (tasks[i].operation_executed / optimal_executions[i]);
+  }
+  printf("%f\n%f\n", denominator * test_threads, nominator * nominator);
+  fairness_index = (nominator * nominator) / (test_threads * denominator);
+  printf("Fairness index: %f\n", fairness_index); 
+
   cache_line_close(ID, "cache_line");
   barriers_term(ID);
   return 0;
