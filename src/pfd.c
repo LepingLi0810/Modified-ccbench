@@ -93,8 +93,8 @@ pfd_store_init(uint32_t num_entries)
   if (std_pp[i] > PFD_CORRECTION_CONF)
     {
       if (print_warning++ == 1)	{ /* print warning if 2 failed attempts */
-	  printf("* warning: avg pfd correction is %.1f with std deviation: %.1f%%. Recalculating.\n", 
-		 ad[i].avg, std_pp[i]);
+	  //printf("* warning: avg pfd correction is %.1f with std deviation: %.1f%%. Recalculating.\n", 
+		 //ad[i].avg, std_pp[i]);
 	}
       if (tries-- > 0)
 	{
@@ -102,7 +102,7 @@ pfd_store_init(uint32_t num_entries)
 	}
       else
 	{
-	  printf("* warning: setting pfd correction manually\n");
+	  //printf("* warning: setting pfd correction manually\n");
 #if defined(OPTERON)
 	  ad[i].avg = 64;
 #elif defined(OPTERON2)
@@ -112,7 +112,7 @@ pfd_store_init(uint32_t num_entries)
 #elif defined(NIAGARA)
 	  ad[i].avg = 76;
 #else
-	  printf("* warning: no default value for pfd correction is provided (fix in src/pfd.c)\n");
+	  //printf("* warning: no default value for pfd correction is provided (fix in src/pfd.c)\n");
 #endif
 	}
     }
@@ -120,7 +120,9 @@ pfd_store_init(uint32_t num_entries)
   pfd_correction[i] = ad[i].avg;
   assert(pfd_correction[i] > 0);
   
+  if (print_warning++ == 1) {
   printf("* set pfd correction: %llu (std deviation: %.1f%%)\n\n", (long long unsigned int) pfd_correction[i], std_pp[i]);
+  }
   }
 }
 

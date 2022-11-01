@@ -133,7 +133,7 @@ void *run_test(void *arg) {
         }*/
   if (test_threads == 1) {
     cpu = 0;
-    printf("thread %d == cpu %d\n", task->id, cpu);
+    //printf("thread %d == cpu %d\n", task->id, cpu);
     set_cpu(cpu);
   } else {        
         if (test_placement == Hyperthreading) {
@@ -172,17 +172,17 @@ void *run_test(void *arg) {
         } else {
             cpu = task->id;
         }
-        printf("thread %d = cpu %d\n", task->id, cpu);
+        //printf("thread %d = cpu %d\n", task->id, cpu);
 
         set_cpu(cpu);
     }
   }
-  if(test_test == CAS_DIFFERENT_LINE ||
+  /*if(test_test == CAS_DIFFERENT_LINE ||
      test_test == FAI_DIFFERENT_LINE ||
      test_test == TAS_DIFFERENT_LINE ||
      test_test == SWAP_DIFFERENT_LINE) {
     printf("thread %d has cache line %p\n", task->id, cache_lines[task->id]);
-  }
+  }*/
   ull reps = 0;
   uint64_t sum = 0;
   volatile uint64_t* cl = (volatile uint64_t*) cache_line;
@@ -862,9 +862,9 @@ void *run_test(void *arg) {
 
 
   task->operation_executed = reps;
-  pid_t tid = gettid();
-  pid_t pid = getpid();
-  char path[256];
+  //pid_t tid = gettid();
+  //pid_t pid = getpid();
+  /*char path[256];
   char buffer[1024] = { 0 };
   snprintf(path, 256, "/proc/%d/task/%d/schedstat", pid, tid);
   int fd = open(path, O_RDONLY);
@@ -875,13 +875,13 @@ void *run_test(void *arg) {
   if (read(fd, buffer, 1024) <= 0) {
       perror("read");
       exit(-1);
-  }
-  printf("id %02d (CPU %d)"
-          "operation_executed %llu "
-          "schedstat %s",
+  }*/
+  printf("Thread %02d (CPU %d) "
+          "operation_executed %llu \n",
+          //"schedstat %s",
           task->id, cpu,
-          task->operation_executed,
-          buffer);
+          task->operation_executed);
+          //buffer);
   return 0;
 }
 
@@ -1187,8 +1187,8 @@ main(int argc, char **argv)
   }
   sleep(test_duration);
   stop = 1;
-  double min_executions = 99999999999;
-  double max_executions = 0;
+  uint64_t min_executions = 99999999999;
+  uint64_t max_executions = 0;
 
   for (int i = 0; i < test_threads; i++) {
       pthread_join(tasks[i].thread, NULL);
@@ -1199,11 +1199,10 @@ main(int argc, char **argv)
   }
   double average_executions = (1.0 * total_executions) / test_threads;
 
-  printf("Total Executions = %llu\n", total_executions);
-  printf("Average atomic execution time(ns) = %f\n", (1000.0 * 1000 * 1000 * test_duration) / total_executions);
-  printf("Per thread execution average = %f\n", average_executions);
-  printf("Maximum executions: %f\n", max_executions);
-  printf("Minimum executions: %f\n", min_executions); 
+  //printf("Total Executions = %llu\n", total_executions);
+  //printf("Per thread execution average = %f\n", average_executions);
+  //printf("Maximum executions: %"PRIu64"\n", max_executions);
+  //printf("Minimum executions: %"PRIu64"\n", min_executions); 
   //printLatency();
   struct stat st = {0};
   if(stat("Data", &st) == -1) {
@@ -1218,22 +1217,25 @@ main(int argc, char **argv)
   //int atomic_operation_number = minCycle / 425 * test_duration;
   //printf("%d\n", atomic_operation_number);
 
-  double *optimal_executions = (double *)malloc(test_threads * sizeof(double));
+  /*double *optimal_executions = (double *)malloc(test_threads * sizeof(double));
   for(int i = 0; i < test_threads; i++) {
     optimal_executions[i] = tasks[i].operation_executed / max_executions;
     //printf("%f\n", optimal_executions[i]);
-  }
+  }*/
   double fairness_index = 0;
   double denominator = 0;
   double nominator = 0;
   for(int i = 0; i < test_threads; i++) {
-    denominator += (tasks[i].operation_executed / optimal_executions[i]) * (tasks[i].operation_executed / optimal_executions[i]);
-    nominator += (tasks[i].operation_executed / optimal_executions[i]);
+    denominator += (tasks[i].operation_executed * tasks[i].operation_executed);
+    nominator += tasks[i].operation_executed;
   }
-  printf("%f\n%f\n", denominator * test_threads, nominator * nominator);
+  //printf("%f\n%f\n", denominator * test_threads, nominator * nominator);
   fairness_index = (nominator * nominator) / (test_threads * denominator);
-  printf("Fairness index: %f\n", fairness_index); 
+  printf("Execution: Total = %llu, Avg = %.2f Max = %"PRIu64" Min = %"PRIu64"\n", total_executions, average_executions, max_executions, min_executions); 
 
+  printf("Fairness index: %f\n", fairness_index);
+
+  printf("Average atomic execution time(ns) = %f\n", (1000.0 * 1000 * 1000 * test_duration) / total_executions);
   cache_line_close(ID, "cache_line");
   barriers_term(ID);
   return 0;
