@@ -1086,11 +1086,11 @@ main(int argc, char **argv)
     {
       assert(test_stride < test_cache_line_num);
     }
-
+  char *placements[] = {"Hyperthreading", "Intra-socket", "Inter-socket", "Hyperthreading + Inter-socket", "Random"};
 
   ID = 0;
-  printf("test: %20s  / #cores: %d / #repetitions: %d / stride: %d (%u kiB)", moesi_type_des[test_test], 
-	 test_cores, test_reps, test_stride, (64 * test_stride) / 1024);
+  printf("test: %20s  / #threads: %d / #duration: %ds / placement: %30s", moesi_type_des[test_test], 
+	 test_threads, test_duration, placements[test_placement]);
   if (test_flush)
     {
       printf(" / flush");
