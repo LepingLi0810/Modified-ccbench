@@ -147,6 +147,8 @@ extern volatile ticks* pfd_correction;
 
 #  define PFDO(id, store, entry)						\
   asm volatile ("");							\
+  _mm_mfence();                                                         \
+  pfd_store[id][store][entry] =  getticks() - _pfd_s[id][store] - pfd_correction[id]; \
   if (entry == pfd_size[id] * 3 / 4) {                                      \
     ticks *temp;                                                        \
     uint64_t new_size = pfd_size[id] * 2;                                   \
@@ -159,8 +161,6 @@ extern volatile ticks* pfd_correction;
     pfd_store[id][store] = temp;                                            \
     pfd_size[id] = new_size;                                                \
   }                                                                     \
-  _mm_mfence();                                                         \
-  pfd_store[id][store][entry] =  getticks() - _pfd_s[id][store] - pfd_correction[id]; \
   }
 
 #  define PFDOR(id, store, entry, reps)					\
