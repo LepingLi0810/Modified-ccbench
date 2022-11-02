@@ -77,6 +77,7 @@ static uint64_t load_0_eventually_no_pf(volatile cache_line_t* cl);
 static void invalidate(int id, volatile cache_line_t* cache_line, uint64_t index, volatile uint64_t reps);
 static uint32_t cas_different_word(volatile cache_line_t* cl, int index);
 static uint32_t cas_success_only(volatile cache_line_t* cl);
+//static uint32_t cas_success_only(volatile cache_line_t* cl, int id, volatile uint64_t reps);
 static uint32_t cas(int id, volatile cache_line_t* cache_line, volatile uint64_t reps);
 static uint32_t cas_0_eventually(int id, volatile cache_line_t* cache_line, volatile uint64_t reps);
 static uint32_t cas_no_pf(volatile cache_line_t* cache_line, volatile uint64_t reps);
@@ -488,62 +489,63 @@ void *run_test(void *arg) {
 	  }
         case CAS_SUCCESS: /* 12 */
           {
-            sum += cas_success_only(cache_line);
+            //cas_success_only(cache_line, task->id, reps);
+	    cas_success_only(cache_line);
             break;
           }
         case CAS_DIFFERENT_WORD: /* 13 */
           {
-            sum += cas_different_word(cache_line, task->id);
+            cas_different_word(cache_line, task->id);
             break;
           }
         case CAS_DIFFERENT_LINE: /* 14 */
           {
-            sum += cas_success_only(cache_lines[task->id]);
+            cas_success_only(cache_lines[task->id]);
             break;
           }
         case FAI_SUCCESS: /* 15 */
 	  {
-	    sum += fai_success_only(cache_line);
+	    fai_success_only(cache_line);
 	    break;
 	  }
         case FAI_DIFFERENT_WORD: /* 16 */
 	  {
-	    sum += fai_different_word(cache_line, task->id);
+	    fai_different_word(cache_line, task->id);
 	    break;
 	  }
         case FAI_DIFFERENT_LINE: /* 17 */
 	  {
-	    sum += fai_success_only(cache_lines[task->id]);
+	    fai_success_only(cache_lines[task->id]);
 	    break;
 	  }
         case TAS_SUCCESS: /* 18 */
 	  {
-	    sum += tas_success_only(cache_line);
+	    tas_success_only(cache_line);
 	    break;
 	  }
         case TAS_DIFFERENT_WORD: /* 19 */
 	  {
-	    sum += tas_different_word(cache_line, task->id);
+	    tas_different_word(cache_line, task->id);
 	    break;
 	  }
         case TAS_DIFFERENT_LINE: /* 20 */
 	  {
-	    sum += tas_success_only(cache_lines[task->id]);
+	    tas_success_only(cache_lines[task->id]);
 	    break;
 	  }
         case SWAP_SUCCESS: /* 21 */
 	  {
-	    sum += swap_success_only(cache_line);
+	    swap_success_only(cache_line);
 	    break;
 	  }
         case SWAP_DIFFERENT_WORD: /* 22 */
 	  {
-	    sum += swap_different_word(cache_line, task->id);
+	    swap_different_word(cache_line, task->id);
 	    break;
 	  }
         case SWAP_DIFFERENT_LINE: /* 23 */
 	  {
-	    sum += swap_success_only(cache_lines[task->id]);
+	    swap_success_only(cache_lines[task->id]);
 	    break;
 	  }
 	case CAS: /* 24 */
@@ -1247,7 +1249,10 @@ main(int argc, char **argv)
 
 uint32_t
 cas_success_only(volatile cache_line_t* cl) {
+//cas_success_only(volatile cache_line_t* cl, int id, volatile uint64_t reps) {
+  //PFDI(id, 0);
   while (!__sync_bool_compare_and_swap(cl->word, 0, 1));
+  //PFDO(id, 0, reps);
   __sync_bool_compare_and_swap(cl->word, 1, 0);
   return 1;
 }
