@@ -17,59 +17,47 @@ new options:
 Interpreting the results:
 -------------------------
 
-The comments prefixed with "#>>" explain the results.
+./ccbench -a10 -b16 -d3 -t12
 
-yuvraj@node-0:~/ssd/leping/Modified-ccbench$ ./ccbench -a15 -b10 -c10 -d1 -t0 -r100000
+  test:          CAS_SUCCESS  / #threads: 16 / #duration: 10s / placement:  Hyperthreading + Inter-socket  / fence:  none
 
-test:    STORE_ON_MODIFIED  / #cores: 10 / #repetitions: 100000 / stride: 2048 (128 kiB)  / fence:  none
+  Thread 15 (CPU 33) operation_executed 2709697 
 
-thread 6 = cpu 6
+  Thread 13 (CPU 13) operation_executed 2706265 
 
-thread 7 = cpu 7
+  Thread 14 (CPU 23) operation_executed 1730254 
 
-thread 8 = cpu 8
+  Thread 04 (CPU 1) operation_executed 1746250 
 
-thread 9 = cpu 9
+  Thread 06 (CPU 21) operation_executed 1763587 
 
-thread 5 = cpu 5
+  Thread 00 (CPU 0) operation_executed 1887935 
 
-thread 4 = cpu 4
+  Thread 08 (CPU 2) operation_executed 1768900 
 
-thread 3 = cpu 3
+  Thread 10 (CPU 22) operation_executed 1777390 
 
-thread 2 = cpu 2
+  Thread 03 (CPU 30) operation_executed 2747633 
 
-thread 1 = cpu 1
+  Thread 05 (CPU 11) operation_executed 2722321 
 
-thread 0 = cpu 0
+  Thread 02 (CPU 20) operation_executed 1656956 
 
+  Thread 07 (CPU 31) operation_executed 2694247 
 
-id 08 operation_executed 24666 schedstat 14999290449 101025 11
+  Thread 01 (CPU 10) operation_executed 2751295 
 
-id 01 operation_executed 24666 schedstat 15000759154 442706 20
+  Thread 09 (CPU 12) operation_executed 2754483 
 
-id 02 operation_executed 24666 schedstat 15000736844 397527 17
+  Thread 11 (CPU 32) operation_executed 2739232 
 
-id 04 operation_executed 24666 schedstat 14998979861 386082 13
+  Thread 12 (CPU 3) operation_executed 1731149 
 
-id 09 operation_executed 24666 schedstat 15000839265 123551 13
+  Execution: Total = 35887594, Avg = 2242974.62 Max = 2754483 Min = 1656956
 
-id 00 operation_executed 24666 schedstat 14997543156 3767097 79
+  Fairness index: 0.954929
 
-id 03 operation_executed 24666 schedstat 15000791159 320566 14
+  Average atomic execution time(ns) = 278.647825
 
-id 07 operation_executed 24666 schedstat 14999207208 105350 15
-
-id 05 operation_executed 24666 schedstat 14999265272 228502 8
-
-id 06 operation_executed 24666 schedstat 15000970329 146409 20
-
-Total Exeuctions = 246660
-
-Average atomic execution time(ns) = 60812.454391
-
-Per thread execution average = 24666.000000
-
-  
 
 </pre>
