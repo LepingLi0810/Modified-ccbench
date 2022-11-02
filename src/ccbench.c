@@ -96,7 +96,8 @@ static void create_rand_list_cl(volatile uint64_t* list, size_t n);
 #define Hyperthreading 0
 #define Intra_socket 1
 #define Inter_socket 2
-#define Random 3
+#define HyperthreadingAndInter_socket 3
+#define Random 4
 #define min_cpu 0
 #define max_cpu 39
 
@@ -162,7 +163,9 @@ void *run_test(void *arg) {
             //} else {
                 //cpu = (task->id / 20) * 20 + (task->id / 2);
             //}
-        } else if (test_placement == Random) {
+        } else if (test_placement == HyperthreadingAndInter_socket) {
+            cpu = (task->id % 4) * 10 + (task->id / 4);
+        }else if (test_placement == Random) {
             pthread_mutex_lock(&lock);
             do {
                 cpu = (rand() % (max_cpu - min_cpu + 1)) + min_cpu;
