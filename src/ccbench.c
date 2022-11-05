@@ -48,6 +48,7 @@ uint32_t test_cores = DEFAULT_CORES;
 uint32_t test_reps = DEFAULT_REPS;
 uint32_t test_duration = DEFAULT_DURATION;
 uint32_t test_threads = DEFAULT_THREADS;
+uint32_t test_start = DEFAULT_START;
 uint32_t test_core1 = DEFAULT_CORE1;
 uint32_t test_core2 = DEFAULT_CORE2;
 uint32_t test_core3 = DEFAULT_CORE3;
@@ -76,7 +77,7 @@ static uint64_t load_0_eventually_no_pf(volatile cache_line_t* cl);
 
 static void invalidate(int id, volatile cache_line_t* cache_line, uint64_t index, volatile uint64_t reps);
 static uint32_t cas_different_word(volatile cache_line_t* cl, int index);
-static uint32_t cas_success_only(volatile cache_line_t* cl);
+inline static uint32_t cas_success_only(volatile cache_line_t* cl);
 //static uint32_t cas_success_only(volatile cache_line_t* cl, int id, volatile uint64_t reps);
 static uint32_t cas(int id, volatile cache_line_t* cache_line, volatile uint64_t reps);
 static uint32_t cas_0_eventually(int id, volatile cache_line_t* cache_line, volatile uint64_t reps);
@@ -121,7 +122,7 @@ typedef struct {
 
 void *run_test(void *arg) {
   task_t *task = (task_t *) arg;
-  int cpu = 0;
+  int cpu = test_start;
   if (task->ncpu != 0) {
         //cpu_set_t cpuset;
         //CPU_ZERO(&cpuset);
@@ -134,30 +135,24 @@ void *run_test(void *arg) {
                 CPU_SET(i-8, &cpuset);
         }*/
   if (test_threads == 1) {
-    cpu = 0;
     //printf("thread %d == cpu %d\n", task->id, cpu);
     set_cpu(cpu);
   } else {        
         if (test_placement == Hyperthreading) {
             if (task->id >= (test_threads / 2)) {
-                cpu = (task->id / (test_threads / 2)) + 19 + (task->id % (test_threads / 2));
+                cpu += (task->id / (test_threads / 2)) + 19 + (task->id % (test_threads / 2));
                 //cpu = task->id - (test_threads / 2) + 20;
             } else {
-                cpu = task->id;
+                cpu += task->id;
             }
         } else if (test_placement == Intra_socket) {
-            //if (task->id % 20 < 10) {
-            //    cpu = task->id % 20;
-            //} else {
-            //    cpu = task->id % 20 + 10; 
-            //}
-            cpu = task->id;
+            cpu += task->id;
         } else if (test_placement == Inter_socket) {
             if ((task->id) >= (test_threads / 2)) {
                 //cpu = ((task->id % 20) / (test_threads / 2)) + 9 + (task->id % 20  % (test_threads / 2));
-                cpu = task->id - (test_threads / 2) + 10 + 10 * ((task->id + 10 - test_threads / 2)/ 20);
+                cpu += task->id - (test_threads / 2) + 10 + 10 * ((task->id + 10 - test_threads / 2)/ 20);
             } else {
-                cpu = (task->id % 10) + 20 * (task->id / 10);
+                cpu += (task->id % 10) + 20 * (task->id / 10);
             }
             //if(task->id % 2) {
 	        //cpu = 10 + (task->id / 20) * 20 + (task->id / 2);
@@ -165,7 +160,7 @@ void *run_test(void *arg) {
                 //cpu = (task->id / 20) * 20 + (task->id / 2);
             //}
         } else if (test_placement == HyperthreadingAndInter_socket) {
-            cpu = (task->id % 4) * 10 + (task->id / 4);
+            cpu += (task->id % 4) * 10 + (task->id / 4);
         }else if (test_placement == Random) {
             pthread_mutex_lock(&lock);
             do {
@@ -176,7 +171,7 @@ void *run_test(void *arg) {
         } else {
             cpu = task->id;
         }
-        //printf("thread %d = cpu %d\n", task->id, cpu);
+        printf("thread %d = cpu %d\n", task->id, cpu);
 
         set_cpu(cpu);
     }
@@ -190,6 +185,7 @@ void *run_test(void *arg) {
   ull reps = 0;
   uint64_t sum = 0;
   volatile uint64_t* cl = (volatile uint64_t*) cache_line;
+  //printf("thread %d = cpu %d\n", task->id, cpu);
   for (reps = 0; !*task->stop; reps++)
     {
       if (test_flush)
@@ -930,6 +926,8 @@ main(int argc, char **argv)
       {"print",                     required_argument, NULL, 'p'},
       {"duration",                  required_argument, NULL, 'a'},
       {"threads",                   required_argument, NULL, 'b'},
+      {"placement",                 required_argument, NULL, 'd'},
+      {"start cpu",                 required_argument, NULL, 'g'},
       {NULL, 0, NULL, 0}
     };
 
@@ -938,7 +936,7 @@ main(int argc, char **argv)
   while(1) 
     {
       i = 0;
-      c = getopt_long(argc, argv, "hc:r:t:x:m:y:z:o:e:fvup:s:a:b:d:", long_options, &i);
+      c = getopt_long(argc, argv, "hc:r:t:x:m:y:z:o:e:fvup:s:a:b:d:g:", long_options, &i);
 
       if(c == -1)
 	break;
@@ -1003,7 +1001,9 @@ main(int argc, char **argv)
 		 "        number of threads to create (default=" XSTR(DEFAULT_THREADS) ")\n"
 		 "  -d, --placement <int>\n"
 		 "        how to place threads (default=" XSTR(DEFAULT_PLACEMENT) ")\n"
-                 );
+                 "  -g, --start cpu <int>\n"
+		 "        where to start place threads (default=" XSTR(DEFAULT_START) ")\n"
+                );
 	  printf("Supported events: \n");
 	  int ar;
 	  for (ar = 0; ar < NUM_EVENTS; ar++)
@@ -1067,6 +1067,9 @@ main(int argc, char **argv)
 	  exit(0);
         case 'd':
           test_placement = atoi(optarg);
+          break;
+        case 'g':
+          test_start = atoi(optarg);
           break;
 	default:
 	  exit(1);
@@ -1247,7 +1250,7 @@ main(int argc, char **argv)
 
 }
 
-uint32_t
+inline uint32_t
 cas_success_only(volatile cache_line_t* cl) {
 //cas_success_only(volatile cache_line_t* cl, int id, volatile uint64_t reps) {
   //PFDI(id, 0);

@@ -191,7 +191,8 @@ const char* moesi_type_des[] =
 #define DEFAULT_DURATION    5
 #define DEFAULT_THREADS     4
 #define DEFAULT_PLACEMENT   0  //0-hyperthreading 1-intra_socket 2-inter_socket
-#define DEFAULT_TEST        0
+#define DEFAULT_START       0
+#define DEFAULT_TEST        12
 #define DEFAULT_CORE1       0
 #define DEFAULT_CORE2       1
 #define DEFAULT_CORE3       2
