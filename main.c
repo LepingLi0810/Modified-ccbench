@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
 
   printf("Fairness index: %f\n", fairness_index);
 
-  printf("Average atomic execution time(ns) = %f\n", (1000.0 * 1000 * 1000 * test_duration) / total_executions);
+  printf("Average insert time(ns) = %f\n", (1000.0 * 1000 * 1000 * test_duration) / total_executions);
   //lfds711_list_asu_cleanup(&lasus, NULL);
   free(tasks);
   return 0;
