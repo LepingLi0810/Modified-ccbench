@@ -9,6 +9,7 @@
 #include <sys/syscall.h>
 #include <inttypes.h>
 #include "liblfds711.h"
+#include "rdtsc.h"
 
 typedef unsigned long long ull;
 
@@ -21,6 +22,8 @@ typedef struct
 } task_t __attribute__ ((aligned (64)));;
 
 struct lfds711_list_asu_state lasus;
+
+struct lfds711_list_asu_element **elements; 
 
 void
 set_cpu(int cpu) 
@@ -63,20 +66,21 @@ void *run_test(void *arg) {
     }
      set_cpu(cpu);
   }
+  //ull before, after;
   LFDS711_MISC_MAKE_VALID_ON_CURRENT_LOGICAL_CORE_INITS_COMPLETED_BEFORE_NOW_ON_ANY_OTHER_LOGICAL_CORE;
   ull reps;
+  //ull before, after;
   for(reps = 0; !*task->stop; reps++) {
-    struct lfds711_list_asu_element *element = malloc(sizeof(struct lfds711_list_asu_element));
-    int *x = malloc(sizeof(int));
-    *x = task->id;
-    LFDS711_LIST_ASU_SET_KEY_IN_ELEMENT(*element, NULL);
-    LFDS711_LIST_ASU_SET_VALUE_IN_ELEMENT(*element, x);
-    lfds711_list_asu_insert_at_position(&lasus, element, NULL, LFDS711_LIST_ASU_POSITION_END);
+    //if(reps == 9999999) printf("warning!\n");
+    //before = rdtsc();
+    lfds711_list_asu_insert_at_position(&lasus, elements[task->id] + reps, NULL, LFDS711_LIST_ASU_POSITION_END);
+    //after = rdtsc();
+    //break;
   }
   task->executions = reps;
   printf("Thread %02d (CPU %d) "
-          "executions %llu \n",
-          //"schedstat %s",
+          "executions %llu\n",
+      //    "before: %llu, after: %llu\n",
           task->id, cpu,
           task->executions);
   return 0;
@@ -88,6 +92,7 @@ int main(int argc, char *argv[])
     printf("Please follow this format: ./main test_duration test_threads test_placement\n");
     exit(1);
   }
+  //set_cpu(13);
   lfds711_list_asu_init_valid_on_current_logical_core(&lasus, NULL);
   int stop __attribute__((aligned (64))) = 0;
   int test_duration = atoi(argv[1]);
@@ -98,6 +103,16 @@ int main(int argc, char *argv[])
         tasks[i].stop = &stop;
         tasks[i].id = i;
         tasks[i].executions = 0;
+  }
+  elements = malloc(sizeof(struct lfds711_list_asu_element *) * test_threads);
+  for(int i = 0; i < test_threads; i++) {
+    elements[i] = malloc(10000000 * sizeof(struct lfds711_list_asu_element));
+    for(int j = 0; j < 10000000; j++) {
+      int *x = malloc(sizeof(int));
+      *x = tasks[i].id;
+      LFDS711_LIST_ASU_SET_KEY_IN_ELEMENT(elements[i][j], NULL);
+      LFDS711_LIST_ASU_SET_VALUE_IN_ELEMENT(elements[i][j], x);
+    }
   }
   for(int i = 0; i < test_threads; i++) {
     pthread_create(&tasks[i].thread, NULL, run_test, &tasks[i]);
