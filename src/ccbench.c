@@ -1177,7 +1177,7 @@ main(int argc, char **argv)
   for (int i = 0; i < test_threads; i++) {
         tasks[i].stop = &stop;
 
-        tasks[i].ncpu = test_cores;
+        tasks[i].ncpu = test_threads;
         tasks[i].id = i;
 
         tasks[i].operation_executed = 0;
