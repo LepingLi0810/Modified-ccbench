@@ -35,9 +35,34 @@ set_cpu(int cpu)
   }
 }
 
+volatile int test_placement;
+volatile int test_threads;
+
 void *run_test(void *arg) {
   task_t *task = (task_t *) arg;
-  set_cpu(task->id);
+  int cpu = 0;
+  if (test_threads == 1) {
+    set_cpu(cpu);
+  } else {        
+    if (test_placement == 0) {
+      if (task->id >= (test_threads / 2)) {
+        cpu = (task->id / (test_threads / 2)) + 19 + (task->id % (test_threads / 2));
+      } else {
+        cpu = task->id;
+      }
+    } else if (test_placement == 1) {
+        cpu = task->id;
+    } else if (test_placement == 2) {
+        if ((task->id) >= (test_threads / 2)) {
+          cpu = task->id - (test_threads / 2) + 10 + 10 * ((task->id + 10 - test_threads / 2)/ 20);
+        } else {
+          cpu = (task->id % 10) + 20 * (task->id / 10);
+        }
+    } else {
+       cpu = task->id;
+    }
+     set_cpu(cpu);
+  }
   LFDS711_MISC_MAKE_VALID_ON_CURRENT_LOGICAL_CORE_INITS_COMPLETED_BEFORE_NOW_ON_ANY_OTHER_LOGICAL_CORE;
   ull reps;
   for(reps = 0; !*task->stop; reps++) {
@@ -52,17 +77,22 @@ void *run_test(void *arg) {
   printf("Thread %02d (CPU %d) "
           "executions %llu \n",
           //"schedstat %s",
-          task->id, task->id,
+          task->id, cpu,
           task->executions);
   return 0;
 }
 
 int main(int argc, char *argv[])
 {
+  if (argc < 4) {
+    printf("Please follow this format: ./main test_duration test_threads test_placement\n");
+    exit(1);
+  }
   lfds711_list_asu_init_valid_on_current_logical_core(&lasus, NULL);
   int stop __attribute__((aligned (64))) = 0;
   int test_duration = atoi(argv[1]);
-  int test_threads = atoi(argv[2]);
+  test_threads = atoi(argv[2]);
+  test_placement = atoi(argv[3]);
   task_t *tasks = malloc(sizeof(task_t) * test_threads);
   for (int i = 0; i < test_threads; i++) {
         tasks[i].stop = &stop;
