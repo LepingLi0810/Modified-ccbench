@@ -29,7 +29,7 @@
 
 #include "ccbench.h"
 #include <sys/stat.h>
-
+#include "rdtsc.h"
 #define gettid() syscall(SYS_gettid)
 
 //#define CYCLE_PER_S 2300000000
@@ -78,13 +78,14 @@ static uint64_t load_0_eventually_no_pf(volatile cache_line_t* cl);
 static void invalidate(int id, volatile cache_line_t* cache_line, uint64_t index, volatile uint64_t reps);
 static uint32_t cas_different_word(volatile cache_line_t* cl, int index);
 inline static uint32_t cas_success_only(volatile cache_line_t* cl);
-//static uint32_t cas_success_only(volatile cache_line_t* cl, int id, volatile uint64_t reps);
+//static uint32_t cas_success_only(volatile cache_line_t* cl, int *id, volatile uint64_t *reps);
 static uint32_t cas(int id, volatile cache_line_t* cache_line, volatile uint64_t reps);
 static uint32_t cas_0_eventually(int id, volatile cache_line_t* cache_line, volatile uint64_t reps);
 static uint32_t cas_no_pf(volatile cache_line_t* cache_line, volatile uint64_t reps);
 static uint32_t fai(int id, volatile cache_line_t* cache_line, volatile uint64_t reps);
 static uint32_t fai_different_word(volatile cache_line_t* cl, int index);
 static uint32_t fai_success_only(volatile cache_line_t* cl);
+//static uint32_t fai_success_only(volatile cache_line_t* cl, int id, volatile uint64_t reps);
 static uint8_t tas(int id, volatile cache_line_t* cl, volatile uint64_t reps);
 static uint32_t tas_different_word(volatile cache_line_t* cl, int index);
 static uint32_t tas_success_only(volatile cache_line_t* cl);
@@ -117,6 +118,8 @@ typedef struct {
     int id;
     int ncpu;
     // outputs
+    //ull beforeCAS;
+    //ull afterCAS;
     ull operation_executed;
 } task_t __attribute__ ((aligned (64)));
 
@@ -124,16 +127,6 @@ void *run_test(void *arg) {
   task_t *task = (task_t *) arg;
   int cpu = test_start;
   if (task->ncpu != 0) {
-        //cpu_set_t cpuset;
-        //CPU_ZERO(&cpuset);
-        /*for (int i = 0; i < task->ncpu; i++) {
-            if (i < 8 || i >= 24)
-                CPU_SET(i, &cpuset);
-            else if (i < 16)
-                CPU_SET(i+8, &cpuset);
-            else
-                CPU_SET(i-8, &cpuset);
-        }*/
   if (test_threads == 1) {
     //printf("thread %d == cpu %d\n", task->id, cpu);
     set_cpu(cpu);
@@ -171,7 +164,7 @@ void *run_test(void *arg) {
         } else {
             cpu = task->id;
         }
-        printf("thread %d = cpu %d\n", task->id, cpu);
+        //printf("thread %d = cpu %d\n", task->id, cpu);
 
         set_cpu(cpu);
     }
@@ -184,8 +177,10 @@ void *run_test(void *arg) {
   }*/
   ull reps = 0;
   uint64_t sum = 0;
-  volatile uint64_t* cl = (volatile uint64_t*) cache_line;
-  //printf("thread %d = cpu %d\n", task->id, cpu);
+
+//  cas_success_only(cache_line, &(task->beforeCAS), &(task->afterCAS));
+ 
+
   for (reps = 0; !*task->stop; reps++)
     {
       if (test_flush)
@@ -485,7 +480,7 @@ void *run_test(void *arg) {
 	  }
         case CAS_SUCCESS: /* 12 */
           {
-            //cas_success_only(cache_line, task->id, reps);
+            //cas_success_only(cache_line, &beforeCAS, &afterCAS);
 	    cas_success_only(cache_line);
             break;
           }
@@ -502,6 +497,7 @@ void *run_test(void *arg) {
         case FAI_SUCCESS: /* 15 */
 	  {
 	    fai_success_only(cache_line);
+            //fai_success_only(cache_line, task->id, reps);
 	    break;
 	  }
         case FAI_DIFFERENT_WORD: /* 16 */
@@ -810,7 +806,7 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_MEM_SIZE: /* 39 */
 	  {
-	    sum += load_next(task->id, cl, reps);
+	    sum += load_next(task->id, (volatile uint64_t *)cache_line, reps);
 	  }
 	  break;
 	case LFENCE:		/* 40 */
@@ -1177,9 +1173,10 @@ main(int argc, char **argv)
   for (int i = 0; i < test_threads; i++) {
         tasks[i].stop = &stop;
 
-        tasks[i].ncpu = test_cores;
+        tasks[i].ncpu = test_threads;
         tasks[i].id = i;
-
+        //tasks[i].beforeCAS = 0;
+        //tasks[i].afterCAS = 0;
         tasks[i].operation_executed = 0;
         //printf("Task id = %d, priority = %d, ncpu = %d, atomics_executed = %llu\n", tasks[i].id, tasks[i].priority, tasks[i].ncpu, tasks[i].atomics_executed);
   }
@@ -1194,6 +1191,7 @@ main(int argc, char **argv)
         pthread_create(&tasks[i].thread, NULL, run_test, &tasks[i]);
   }
   sleep(test_duration);
+  //usleep(5000);
   stop = 1;
   uint64_t min_executions = 99999999999;
   uint64_t max_executions = 0;
@@ -1203,10 +1201,21 @@ main(int argc, char **argv)
       total_executions = total_executions + tasks[i].operation_executed;
       if(tasks[i].operation_executed > max_executions) max_executions = tasks[i].operation_executed;
       if(tasks[i].operation_executed < min_executions) min_executions = tasks[i].operation_executed;
-
-  }
+   }
   double average_executions = (1.0 * total_executions) / test_threads;
-
+/*
+  for(int i = 0; i < test_threads - 1; i++) {
+    for(int j = 0; j < test_threads - i - 1; j++) {
+      if(tasks[j].afterCAS > tasks[j + 1].afterCAS) {
+        task_t temp = tasks[j];
+        tasks[j] = tasks[j + 1];
+        tasks[j + 1] = temp;
+      }
+    }
+  }
+ for(int i = 0; i < test_threads; i++)
+ printf("thread %d beforeCAS: %lld\tafterCAS:%lld\n", tasks[i].id, tasks[i].beforeCAS, tasks[i].afterCAS);
+*/
   //printf("Total Executions = %llu\n", total_executions);
   //printf("Per thread execution average = %f\n", average_executions);
   //printf("Maximum executions: %"PRIu64"\n", max_executions);
@@ -1225,11 +1234,6 @@ main(int argc, char **argv)
   //int atomic_operation_number = minCycle / 425 * test_duration;
   //printf("%d\n", atomic_operation_number);
 
-  /*double *optimal_executions = (double *)malloc(test_threads * sizeof(double));
-  for(int i = 0; i < test_threads; i++) {
-    optimal_executions[i] = tasks[i].operation_executed / max_executions;
-    //printf("%f\n", optimal_executions[i]);
-  }*/
   double fairness_index = 0;
   double denominator = 0;
   double nominator = 0;
@@ -1244,18 +1248,16 @@ main(int argc, char **argv)
   printf("Fairness index: %f\n", fairness_index);
 
   printf("Average atomic execution time(ns) = %f\n", (1000.0 * 1000 * 1000 * test_duration) / total_executions);
+  free(tasks);
   cache_line_close(ID, "cache_line");
   barriers_term(ID);
   return 0;
-
 }
 
 inline uint32_t
 cas_success_only(volatile cache_line_t* cl) {
-//cas_success_only(volatile cache_line_t* cl, int id, volatile uint64_t reps) {
-  //PFDI(id, 0);
+//cas_success_only(volatile cache_line_t* cl, int *id, volatile uint64_t *reps) {
   while (!__sync_bool_compare_and_swap(cl->word, 0, 1));
-  //PFDO(id, 0, reps);
   __sync_bool_compare_and_swap(cl->word, 1, 0);
   return 1;
 }
@@ -1315,10 +1317,15 @@ cas_0_eventually(int id, volatile cache_line_t* cl, volatile uint64_t reps)
   return (r == o);
 }
 
+//uint32_t fai_success_only(volatile cache_line_t* cl, int id, volatile uint64_t reps)
 uint32_t fai_success_only(volatile cache_line_t* cl)
 {
   while (!__sync_fetch_and_add(cl->word, 1));
+//  if (reps < 1)
+//    printf("thread %d executes his 1st CAS successfuly\n", id);
   __sync_fetch_and_sub(cl->word, 1);
+//  if (reps < 1)
+//    printf("thread %d resets the value to 0\n", id);
   return 1;
 }
 
