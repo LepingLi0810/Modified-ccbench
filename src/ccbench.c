@@ -133,8 +133,12 @@ void *run_test(void *arg) {
   } else {        
         if (test_placement == Hyperthreading) {
             if (task->id >= (test_threads / 2)) {
-                cpu += (task->id / (test_threads / 2)) + 19 + (task->id % (test_threads / 2));
-                //cpu = task->id - (test_threads / 2) + 20;
+                if(task->id == test_threads - 1) {
+                  cpu += (task->id / (test_threads / 2)) + 19 + (task->id % (test_threads / 2 + 1));
+                } else {
+                  cpu += (task->id / (test_threads / 2)) + 19 + (task->id % (test_threads / 2));
+                //cpu += (task->id % 10);
+                }
             } else {
                 cpu += task->id;
             }
