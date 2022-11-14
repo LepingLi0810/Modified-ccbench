@@ -62,17 +62,17 @@ default: ccbench
 all: ccbench
 
 ccbench: ccbench.o $(SRC)/pfd.c $(SRC)/barrier.c $(INCLUDE)/common.h $(INCLUDE)/ccbench.h $(INCLUDE)/pfd.h $(INCLUDE)/barrier.h barrier.o pfd.o
-	$(CC) $(VER_FLAGS) -o ccbench ccbench.o pfd.o barrier.o ./liblfds711/obj/*.o $(CFLAGS) $(LDFLAGS) -I./$(INCLUDE) -I./liblfds711/inc 
+	$(CC) $(VER_FLAGS) -o ccbench ccbench.o pfd.o barrier.o $(CFLAGS) $(LDFLAGS) -I./$(INCLUDE)  
 ccbench.o: $(SRC)/ccbench.c $(INCLUDE)/ccbench.h
-	$(CC) $(VER_FLAGS) -c $(SRC)/ccbench.c $(CFLAGS) -I./$(INCLUDE) -I./liblfds711/inc 
+	$(CC) $(VER_FLAGS) -c $(SRC)/ccbench.c $(CFLAGS) -I./$(INCLUDE) 
 
 pfd.o: $(SRC)/pfd.c $(INCLUDE)/pfd.h
-	$(CC) $(VER_FLAGS) -c $(SRC)/pfd.c $(CFLAGS) -I./$(INCLUDE) -I./liblfds711/inc 
+	$(CC) $(VER_FLAGS) -c $(SRC)/pfd.c $(CFLAGS) -I./$(INCLUDE) 
 
 barrier.o: $(SRC)/barrier.c $(INCLUDE)/barrier.h
-	$(CC) $(VER_FLAGS) -c $(SRC)/barrier.c $(CFLAGS) -I./$(INCLUDE) -I./liblfds711/inc 
+	$(CC) $(VER_FLAGS) -c $(SRC)/barrier.c $(CFLAGS) -I./$(INCLUDE) 
 main:
-	gcc -Iliblfds711/inc main.c ./liblfds711/obj/*.o -lpthread -fsanitize=address -o main
+	gcc -Iliblfds711/inc -Iinclude/ main.c ./liblfds711/obj/*.o -lpthread -fsanitize=address -o main
 
 clean:
 	rm -f *.o ccbench main

@@ -117,6 +117,7 @@ typedef struct {
     //int priority;
     int id;
     int ncpu;
+    //int cpu;
     // outputs
     //ull beforeCAS;
     //ull afterCAS;
@@ -133,7 +134,7 @@ void *run_test(void *arg) {
   } else {        
         if (test_placement == Hyperthreading) {
             if (task->id >= (test_threads / 2)) {
-                if(task->id == test_threads - 1) {
+                if(task->id == test_threads - 1 && test_threads % 2 != 0) {
                   cpu += (task->id / (test_threads / 2)) + 19 + (task->id % (test_threads / 2 + 1));
                 } else {
                   cpu += (task->id / (test_threads / 2)) + 19 + (task->id % (test_threads / 2));
@@ -171,6 +172,7 @@ void *run_test(void *arg) {
         //printf("thread %d = cpu %d\n", task->id, cpu);
 
         set_cpu(cpu);
+        task->ncpu = cpu;
     }
   }
   /*if(test_test == CAS_DIFFERENT_LINE ||
@@ -877,12 +879,14 @@ void *run_test(void *arg) {
       perror("read");
       exit(-1);
   }*/
+/*
   printf("Thread %02d (CPU %d) "
           "operation_executed %llu \n",
           //"schedstat %s",
           task->id, cpu,
           task->operation_executed);
           //buffer);
+*/
   return 0;
 }
 
@@ -1179,6 +1183,7 @@ main(int argc, char **argv)
 
         tasks[i].ncpu = test_threads;
         tasks[i].id = i;
+        //tasks[i].cpu = 0;
         //tasks[i].beforeCAS = 0;
         //tasks[i].afterCAS = 0;
         tasks[i].operation_executed = 0;
@@ -1207,19 +1212,24 @@ main(int argc, char **argv)
       if(tasks[i].operation_executed < min_executions) min_executions = tasks[i].operation_executed;
    }
   double average_executions = (1.0 * total_executions) / test_threads;
-/*
   for(int i = 0; i < test_threads - 1; i++) {
     for(int j = 0; j < test_threads - i - 1; j++) {
-      if(tasks[j].afterCAS > tasks[j + 1].afterCAS) {
+      if(tasks[j].operation_executed > tasks[j + 1].operation_executed) {
         task_t temp = tasks[j];
         tasks[j] = tasks[j + 1];
         tasks[j + 1] = temp;
       }
     }
   }
- for(int i = 0; i < test_threads; i++)
- printf("thread %d beforeCAS: %lld\tafterCAS:%lld\n", tasks[i].id, tasks[i].beforeCAS, tasks[i].afterCAS);
-*/
+ for(int i = 0; i < test_threads; i++) {
+   printf("Thread %02d (CPU %d) "
+          "operation_executed %llu \n",
+          //"schedstat %s",
+          tasks[i].id, tasks[i].ncpu,
+          tasks[i].operation_executed);
+          //buffer);
+  }
+
   //printf("Total Executions = %llu\n", total_executions);
   //printf("Per thread execution average = %f\n", average_executions);
   //printf("Maximum executions: %"PRIu64"\n", max_executions);

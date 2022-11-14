@@ -19,6 +19,7 @@ typedef struct
   pthread_t thread; 
   int id;
   ull executions;
+  int cpu;
 } task_t __attribute__ ((aligned (64)));;
 
 struct lfds711_list_asu_state lasus;
@@ -65,8 +66,8 @@ void *run_test(void *arg) {
        cpu = task->id;
     }
      set_cpu(cpu);
+     task->cpu = cpu;
   }
-  //ull before, after;
   LFDS711_MISC_MAKE_VALID_ON_CURRENT_LOGICAL_CORE_INITS_COMPLETED_BEFORE_NOW_ON_ANY_OTHER_LOGICAL_CORE;
   ull reps;
   //ull before, after;
@@ -78,11 +79,6 @@ void *run_test(void *arg) {
     //break;
   }
   task->executions = reps;
-  printf("Thread %02d (CPU %d) "
-          "executions %llu\n",
-      //    "before: %llu, after: %llu\n",
-          task->id, cpu,
-          task->executions);
   return 0;
 }
 
@@ -103,6 +99,7 @@ int main(int argc, char *argv[])
         tasks[i].stop = &stop;
         tasks[i].id = i;
         tasks[i].executions = 0;
+        tasks[i].cpu = 0;
   }
   elements = malloc(sizeof(struct lfds711_list_asu_element *) * test_threads);
   for(int i = 0; i < test_threads; i++) {
@@ -127,6 +124,23 @@ int main(int argc, char *argv[])
     total_executions = total_executions + tasks[i].executions;
     if(tasks[i].executions > max_executions) max_executions = tasks[i].executions;
     if(tasks[i].executions < min_executions) min_executions = tasks[i].executions;
+  }
+  for(int i = 0; i < test_threads - 1; i++) {
+    for(int j = 0; j < test_threads - i - 1; j++) {
+      if(tasks[j].executions > tasks[j + 1].executions) {
+        task_t temp = tasks[j];
+        tasks[j] = tasks[j + 1];
+        tasks[j + 1] = temp;
+      }
+    }
+  }
+  for(int i = 0; i < test_threads; i++) {
+    printf("Thread %02d (CPU %d) "
+          "executions %llu\n",
+          //"before: %llu, after: %llu after-before: %llu\n",
+          tasks[i].id, tasks[i].cpu,
+          tasks[i].executions);
+
   }
   double average_executions = (1.0 * total_executions) / test_threads;
   double fairness_index = 0;
