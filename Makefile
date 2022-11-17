@@ -71,8 +71,8 @@ pfd.o: $(SRC)/pfd.c $(INCLUDE)/pfd.h
 
 barrier.o: $(SRC)/barrier.c $(INCLUDE)/barrier.h
 	$(CC) $(VER_FLAGS) -c $(SRC)/barrier.c $(CFLAGS) -I./$(INCLUDE) 
-main:
-	gcc -Iliblfds711/inc -Iinclude/ main.c ./liblfds711/obj/*.o -lpthread -fsanitize=address -o main
+linked_list:
+	gcc -Iliblfds711/inc -Iinclude/ linked_list.c ./liblfds711/obj/*.o -lpthread -fsanitize=address -o linked_list
 
 clean:
-	rm -f *.o ccbench main
+	rm -f *.o ccbench linked_list

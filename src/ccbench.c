@@ -359,14 +359,16 @@ void *run_test(void *arg) {
 	  }
 	case LOAD_FROM_MODIFIED: /* 7 */
 	  {
-	    switch (task->id % 3)
+	    switch (task->id % 2)
 	      {
 	      case 0:
+                //store_0_no_pf(cache_line, reps);
 		store_0_eventually(task->id, cache_line, reps);
 		B1;		
 		break;
 	      case 1:
 		B1;			/* BARRIER 1 */
+                //load_0_no_pf(cache_line);
 		sum += load_0_eventually(task->id, cache_line, reps);
 		break;
 	      default:
@@ -1483,6 +1485,7 @@ store_0_no_pf(volatile cache_line_t* cl, volatile uint64_t reps)
       _mm_mfence();
     }
 }
+
 
 static void
 store_0_eventually_sf(int id, volatile cache_line_t* cl, volatile uint64_t reps)
