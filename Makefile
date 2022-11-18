@@ -78,4 +78,4 @@ clean:
 	rm -f *.o ccbench
 
 clean_linked_list:
-        rm -f linked_list
+	rm -f linked_list
