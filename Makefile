@@ -75,4 +75,7 @@ linked_list:
 	gcc -Iliblfds711/inc -Iinclude/ linked_list.c ./liblfds711/obj/*.o -lpthread -fsanitize=address -o linked_list
 
 clean:
-	rm -f *.o ccbench linked_list
+	rm -f *.o ccbench
+
+clean_linked_list:
+        rm -f linked_list
