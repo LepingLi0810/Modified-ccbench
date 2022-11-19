@@ -63,11 +63,21 @@ void *run_test(void *arg) {
     } else if (test_placement == 1) {
         cpu += task->id;
     } else if (test_placement == 2) {
-        if ((task->id) >= (test_threads / 2)) {
-          cpu += task->id - (test_threads / 2) + 10 + 10 * ((task->id + 10 - test_threads / 2)/ 20);
-        } else {
-          cpu += (task->id % 10) + 20 * (task->id / 10);
-        }
+       if(test_start < 10) {
+          if ((task->id) >= (test_threads / 2)) {
+             //cpu = ((task->id % 20) / (test_threads / 2)) + 9 + (task->id % 20  % (test_threads / 2));
+             cpu = (task->id + test_start) - (test_threads / 2) + 10 + 10 * ((task->id + test_start + 10 - test_threads / 2)/ 20);
+          } else {
+             cpu = ((task->id + test_start)% 10) + 20 * ((task->id + test_start) / 10);
+          }
+       } else {
+          if ((task->id) >= (test_threads / 2)) {
+            //cpu = ((task->id % 20) / (test_threads / 2)) + 9 + (task->id % 20  % (test_threads / 2));
+            cpu += task->id - (test_threads / 2) + 10 + 10 * ((task->id + 10 - test_threads / 2)/ 20);
+          } else {
+            cpu += (task->id % 10) + 20 * (task->id / 10);
+          }
+       }
     } else {
        cpu += task->id;
     }
@@ -164,6 +174,7 @@ int main(int argc, char *argv[])
 
   printf("Average insert time(ns) = %f\n", (1000.0 * 1000 * 1000 * test_duration) / total_executions);
   //lfds711_list_asu_cleanup(&lasus, NULL);
+  printf("\n\n");
   free(tasks);
   return 0;
 }

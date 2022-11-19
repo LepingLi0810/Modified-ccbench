@@ -58,7 +58,7 @@ run_single_ccbench () {
           t=`expr $t + 1`
         done
       done
-    b=`expr $b + 1`
+      b=`expr $b + 1`
     done
   done
 }
@@ -80,10 +80,10 @@ run_single_linked_list () {
     do
       for d in 0 1 2 3
       do
-          echo "./linked_list $a $b $d 0 > ./one_linked_list/duration${a}_threads${b}_placement${d}"
-          ./linked_list $a $b $d 0 > ./one_linked_list/duration${a}_threads${b}_placement${d}
+        echo "./linked_list $a $b $d 0 > ./one_linked_list/duration${a}_threads${b}_placement${d}"
+        ./linked_list $a $b $d 0 > ./one_linked_list/duration${a}_threads${b}_placement${d}
       done
-    b=`expr $b + 1`
+      b=`expr $b + 1`
     done
   done
 }
@@ -95,9 +95,9 @@ run_two_my_ccbench () {
   build_my_ccbench
   if [ -d "./two_ccbench" ]; then
     echo "two_ccbench directory already exists, please remove it first"
-    exit 1
+    exit 1 
   fi
-  mkdir two_my_ccbench
+  mkdir two_ccbench
   for a in 5 10 30 60 120
   do
     b1=2
@@ -107,49 +107,249 @@ run_two_my_ccbench () {
       while [ $t1 -lt 24 ]
       do
         b2=1
-        while [ $b2 -lt (41 - $b1) ]
+        while [ $b2 -lt `expr 41 - $b1` ]
         do
           t2=12
           while [ $t2 -lt 24 ]
           do 
-            for d in 0 1 2 3
+            for d in 0 1 2
             do
               case "$d" in
       	        0)
       	          #hyperthreading
-                  g=($b1 / 2)
-                  if [[ ($b1 % 2) != 0 ]] && [[ ($b2 > 1) ]]; then
-                    g=`exper $g + 1`
+                  g=`expr $b1 / 2`
+                  if [[ `expr $b1 % 2` != 0 ]] && [[ $b2 > 1 ]]; then
+                    g=`expr $g + 1`
                   fi
-                  while [ ($g + ($b2 / 2)) -lt 21 ]
-                  ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
-
-                  run_single_ccbench
+                  while [ `expr $g + $(($b2 + 1)) / 2` -lt 21 ]
+                  do
+                    ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                    ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                    ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/temp1 & ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g > ./two_ccbench/temp2
+                    cat ./two_ccbench/temp1 >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                    cat ./two_ccbench/temp2 >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                    rm -f ./two_ccbench/temp*
+                    g=`expr $g + 1`
+                  done
                   ;;
                 1)
                   #intra-socket
-                  run_single_linked_list
+                  g=$b1
+                  while [ `expr $g + $b2` -lt 41 ]
+                  do
+                    ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                    ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                    ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/temp1 & ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g > ./two_ccbench/temp2
+                    cat ./two_ccbench/temp1 >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                    cat ./two_ccbench/temp2 >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                    rm -f ./two_ccbench/temp*
+                    g=`expr $g + 1`
+                  done
                   ;;
                 2)
                   #inter-socket
-                  ;;
-                3)
-                  #hyperthreading and inter-socket
-                  echo "run one my_ccbench and one lock-free linked_list"
+                  g=`expr $b1 / 2`
+                  if [[ `expr $b1 % 2` != 0 ]] && [[ $b2 > 1 ]]; then
+                    g=`expr $g + 1`
+                  fi
+                  while [ `expr $g + $(($b2 + 1)) / 2` -lt 41 ]
+                  do
+                    ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                    ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                    ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/temp1 & ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g > ./two_ccbench/temp2
+                    cat ./two_ccbench/temp1 >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                    cat ./two_ccbench/temp2 >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                    rm -f ./two_ccbench/temp*
+                    if [ $g == 9 ]; then
+                      g=`expr $g + 10`
+                    fi
+                    g=`expr $g + 1`
+                  done
                   ;;
               esac
             done
-            t2=`exper $t2 + 1`
+            t2=`expr $t2 + 1`
           done
-          b2=`exper $b2 + 1`
+          b2=`expr $b2 + 1`
         done
-        t1=`exper $t1 + 1`
+        t1=`expr $t1 + 1`
       done
-    b1=`expr $b1 + 1`
+      b1=`expr $b1 + 1`
     done
   done
-
 }
+
+#run_ccbench_linked_list: run one my_ccbench, one lock-free linked list
+run_ccbench_linked_list () {
+  go_my_ccbench
+  build_my_ccbench
+  build_linked_list
+  if [ -d "./ccbench_linked_list" ]; then
+    echo "ccbench_linked_list directory already exists, please remove it first"
+    exit 1 
+  fi
+  mkdir ccbench_linked_list
+
+  for a in 5 7
+  do
+    b1=2
+    while [ $b1 -lt 41 ] 
+    do
+      t=12
+      while [ $t -lt 24 ]
+      do
+        b2=2
+        while [ $b2 -lt `expr 41 - $b1` ]
+        do
+            for d in 0 1 2
+            do
+              case "$d" in
+      	        0)
+      	          #hyperthreading
+                  g=`expr $b1 / 2`
+                  if [[ `expr $b1 % 2` != 0 ]] && [[ $b2 > 1 ]]; then
+                    g=`expr $g + 1`
+                  fi
+                  while [ `expr $g + $(($b2 + 1)) / 2` -lt 21 ]
+                  do
+                    ./linked_list $a $b2 $d $g > ./ccbench_linked_list/duration${a}_threads${b1}_${b2}_placement${d}_test${t}_start${g}
+                    ./ccbench -a10000 -b$b1 -d$d -t$t & ./linked_list $a $b2 $d $g >> ./ccbench_linked_list/duration${a}_threads${b1}_${b2}_placement${d}_test${t}_start${g}
+                    pid=$(pidof ccbench)
+                    kill $pid
+                    g=`expr $g + 1`
+                  done
+                  ;;
+                1)
+                  #intra-socket
+                  g=$b1
+                  while [ `expr $g + $b2` -lt 41 ]
+                  do
+                    ./linked_list $a $b2 $d $g > ./ccbench_linked_list/duration${a}_threads${b1}_${b2}_placement${d}_test${t}_start${g}
+                    ./ccbench -a10000 -b$b1 -d$d -t$t & ./linked_list $a $b2 $d $g >> ./ccbench_linked_list/duration${a}_threads${b1}_${b2}_placement${d}_test${t}_start${g}
+                    pid=$(pidof ccbench)
+                    kill $pid
+                    g=`expr $g + 1`
+                  done
+                  ;;
+                2)
+                  #inter-socket
+                  g=`expr $b1 / 2`
+                  if [[ `expr $b1 % 2` != 0 ]] && [[ $b2 > 1 ]]; then
+                    g=`expr $g + 1`
+                  fi
+                  while [ `expr $g + $(($b2 + 1)) / 2` -lt 41 ]
+                  do
+                    ./linked_list $a $b2 $d $g > ./ccbench_linked_list/duration${a}_threads${b1}_${b2}_placement${d}_test${t}_start${g}
+                    ./ccbench -a10000 -b$b1 -d$d -t$t & ./linked_list $a $b2 $d $g >> ./ccbench_linked_list/duration${a}_threads${b1}_${b2}_placement${d}_test${t}_start${g}
+                    pid=$(pidof ccbench)
+                    kill $pid
+                    if [ $g == 9 ]; then
+                      g=`expr $g + 10`
+                    fi
+                    g=`expr $g + 1`
+                  done
+                  ;;
+              esac
+            done
+          b2=`expr $b2 + 1`
+        done
+        t1=`expr $t1 + 1`
+      done
+      b1=`expr $b1 + 1`
+    done
+  done
+}
+
+#run_my_original_ccbench: run one my_ccbench, one original ccbench
+run_my_original_ccbench () {
+  go_my_ccbench
+  build_my_ccbench
+  cd ..
+  cd ./ccbench
+  make clean
+  make
+  cd ..
+  if [ -d "./my_original_ccbench" ]; then
+    echo "my_original_ccbench directory already exists, please remove it first"
+    exit 1 
+  fi
+  mkdir my_original_ccbench
+
+  
+  b=2
+  while [ $b -lt 39 ] 
+  do
+    t1=12
+    while [ $t1 -lt 24 ]
+    do
+      for t2 in 0 1 3 4 5 7 10
+      do
+        for d in   2
+        do
+          case "$d" in
+      	    0)
+      	      #hyperthreading
+              x=`expr $b / 2`
+              y=`expr $x + 20`
+              if [[ `expr $b % 2` != 0 ]]; then
+                x=`expr $x + 1`
+                y=`expr $y + 1`
+              fi
+              while [ $x -lt 20 ]
+              do
+                ./ccbench/ccbench -c2 -r500000 -t$t2 -x$x -y$y > ./my_original_ccbench/threads${b}_placement${d}_test${t1}_${t2}_start${x}_${y}
+         ./Modified-ccbench/ccbench -a1000 -b$b -t$t1 -d$d & ./ccbench/ccbench -c2 -r500000 -t$t2 -x$x -y$y >> ./my_original_ccbench/threads${b}_placement${d}_test${t1}_${t2}_start${x}_${y}
+                pid=$(pidof ccbench)
+                kill $pid      
+                x=`expr $x + 1`
+                y=`expr $y + 1`
+              done
+              ;;
+            1)
+              #intra-socket
+              x=$b
+              y=`expr $x + 1`
+              while [ $x -lt 40 ]
+              do
+                 ./ccbench/ccbench -c2 -r500000 -t$t2 -x$x -y$y > ./my_original_ccbench/threads${b}_placement${d}_test${t1}_${t2}_start${x}_${y}
+         ./Modified-ccbench/ccbench -a1000 -b$b -t$t1 -d$d & ./ccbench/ccbench -c2 -r500000 -t$t2 -x$x -y$y >> ./my_original_ccbench/threads${b}_placement${d}_test${t1}_${t2}_start${x}_${y}
+                pid=$(pidof ccbench)
+                kill $pid                   
+                x=`expr $x + 1`
+                y=`expr $y + 1`
+              done
+              ;;
+            2)
+              #inter-socket
+              x=`expr $b / 2`
+              y=`expr $x + 10`
+              if [[ `expr $b % 2` != 0 ]]; then
+                x=`expr $x + 1`
+                y=`expr $y + 1`
+              fi
+              while [ $x -lt 30 ]
+              do
+                 ./ccbench/ccbench -c2 -r500000 -t$t2 -x$x -y$y > ./my_original_ccbench/threads${b}_placement${d}_test${t1}_${t2}_start${x}_${y}
+         ./Modified-ccbench/ccbench -a1000 -b$b -t$t1 -d$d & ./ccbench/ccbench -c2 -r500000 -t$t2 -x$x -y$y >> ./my_original_ccbench/threads${b}_placement${d}_test${t1}_${t2}_start${x}_${y}
+                pid=$(pidof ccbench)
+                kill $pid 
+                if [ $x == 9 ]; then
+                  x=`expr $x + 10`
+                  y=`expr $y + 10`
+                fi                  
+                x=`expr $x + 1`
+                y=`expr $y + 1`
+              done              
+              ;;
+          esac
+        done
+      done
+      t1=`expr $t1 + 1`
+    done
+    b=`expr $b + 1`
+  done
+}
+
 
 
 allExperiment=0
@@ -198,21 +398,30 @@ if [[ $specific != "" ]]; then
       ;;
     3)
       echo "run two my_ccbench"
+      run_two_my_ccbench
       ;;
     4)
       echo "run one my_ccbench and one lock-free linked_list"
+      run_ccbench_linked_list
       ;;
     5)
       echo "run one my_ccbench and one original_ccbench"
+      run_my_original_ccbench
       ;;
   esac
   exit 0
 fi
 
+run_single_ccbench
+cd ..
+run_single_linked_list
+cd..
+run_two_my_ccbench
+cd ..
+run_ccbench_linked_list
+cd ..
+run_my_original_ccbench
 
 exit 0
-
-
-
 
 

@@ -146,11 +146,20 @@ void *run_test(void *arg) {
         } else if (test_placement == Intra_socket) {
             cpu += task->id;
         } else if (test_placement == Inter_socket) {
-            if ((task->id) >= (test_threads / 2)) {
-                //cpu = ((task->id % 20) / (test_threads / 2)) + 9 + (task->id % 20  % (test_threads / 2));
-                cpu += task->id - (test_threads / 2) + 10 + 10 * ((task->id + 10 - test_threads / 2)/ 20);
+            if(test_start < 10) {
+              if ((task->id) >= (test_threads / 2)) {
+                  //cpu = ((task->id % 20) / (test_threads / 2)) + 9 + (task->id % 20  % (test_threads / 2));
+                  cpu = (task->id + test_start) - (test_threads / 2) + 10 + 10 * ((task->id + test_start + 10 - test_threads / 2)/ 20);
+              } else {
+                  cpu = ((task->id + test_start)% 10) + 20 * ((task->id + test_start) / 10);
+              }
             } else {
-                cpu += (task->id % 10) + 20 * (task->id / 10);
+              if ((task->id) >= (test_threads / 2)) {
+                  //cpu = ((task->id % 20) / (test_threads / 2)) + 9 + (task->id % 20  % (test_threads / 2));
+                  cpu += task->id - (test_threads / 2) + 10 + 10 * ((task->id + 10 - test_threads / 2)/ 20);
+              } else {
+                  cpu += (task->id % 10) + 20 * (task->id / 10);
+              }
             }
             //if(task->id % 2) {
 	        //cpu = 10 + (task->id / 20) * 20 + (task->id / 2);
@@ -172,9 +181,10 @@ void *run_test(void *arg) {
         //printf("thread %d = cpu %d\n", task->id, cpu);
 
         set_cpu(cpu);
-        task->ncpu = cpu;
+        //task->ncpu = cpu;
     }
   }
+  task->ncpu = cpu;
   /*if(test_test == CAS_DIFFERENT_LINE ||
      test_test == FAI_DIFFERENT_LINE ||
      test_test == TAS_DIFFERENT_LINE ||
@@ -1264,6 +1274,7 @@ main(int argc, char **argv)
   printf("Fairness index: %f\n", fairness_index);
 
   printf("Average atomic execution time(ns) = %f\n", (1000.0 * 1000 * 1000 * test_duration) / total_executions);
+  printf("\n\n");
   free(tasks);
   cache_line_close(ID, "cache_line");
   barriers_term(ID);
