@@ -237,7 +237,7 @@ run_lightweight_two_my_ccbench () {
                 2)
                   #inter-socket
                   g=`expr $b1 / 2`
-                  while [ `expr $g + $b2 / 2` -lt 41 ]
+                  while [ `expr $g + $b2 / 2` -lt 30 ]
                   do
                     cat output3 > lightweight_two_ccbench/ccbench1_${b1}_CPUs_ccbench2_${b2}_CPUs_Inter_Socket_start${g}
                     ./ccbench -a30 -b$b2 -d$d -g$g >> lightweight_two_ccbench/ccbench1_${b1}_CPUs_ccbench2_${b2}_CPUs_Inter_Socket_start${g}
