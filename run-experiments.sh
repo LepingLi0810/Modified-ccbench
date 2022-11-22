@@ -222,7 +222,7 @@ run_lightweight_two_my_ccbench () {
                 1)
                   #intra-socket
                   g=$b1
-                  while [ `expr $g + $b2` -lt 41 ]
+                  while [ `expr $g + $b2` -lt 40 ]
                   do
                     cat output2 > lightweight_two_ccbench/ccbench1_${b1}_CPUs_ccbench2_${b2}_CPUs_Intra_Socket_start${g}
                     ./ccbench -a30 -b$b2 -d$d -g$g >> lightweight_two_ccbench/ccbench1_${b1}_CPUs_ccbench2_${b2}_CPUs_Intra_Socket_start${g}
