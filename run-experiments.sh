@@ -11,6 +11,7 @@ usage () {
     echo "  experiment 3      two my_ccbench"
     echo "  experiment 4      one my_ccbench, one lock-free linked list"
     echo "  experiment 5      one my_ccbench, one original_ccbench"
+    echo "  experiment 6      two my_ccbench but lightweight"
     return 0
 }
 
@@ -125,6 +126,7 @@ run_two_my_ccbench () {
                   do
                     ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
                     ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                    echo "./ccbench -a$a -b$b1 -d$d -t$t1 & ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g"
                     ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/temp1 & ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g > ./two_ccbench/temp2
                     cat ./two_ccbench/temp1 >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
                     cat ./two_ccbench/temp2 >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
@@ -139,6 +141,7 @@ run_two_my_ccbench () {
                   do
                     ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
                     ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                    echo "./ccbench -a$a -b$b1 -d$d -t$t1 & ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g"
                     ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/temp1 & ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g > ./two_ccbench/temp2
                     cat ./two_ccbench/temp1 >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
                     cat ./two_ccbench/temp2 >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
@@ -156,6 +159,7 @@ run_two_my_ccbench () {
                   do
                     ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
                     ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                    echo "./ccbench -a$a -b$b1 -d$d -t$t1 & ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g"
                     ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/temp1 & ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g > ./two_ccbench/temp2
                     cat ./two_ccbench/temp1 >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
                     cat ./two_ccbench/temp2 >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
@@ -177,6 +181,83 @@ run_two_my_ccbench () {
       b1=`expr $b1 + 1`
     done
   done
+}
+
+#run_light_weight_two_my_ccbench: run two my_ccbench but light weight
+run_lightweight_two_my_ccbench () {
+  go_my_ccbench
+  build_my_ccbench
+  if [ -d "./lightweight_two_ccbench" ]; then
+    echo "lightweight_two_ccbench directory already exists, please remove it first"
+    exit 1 
+  fi
+  mkdir lightweight_two_ccbench
+  b1=6
+    while [ $b1 -lt 41 ] 
+    do
+      b2=2
+      ./ccbench -a30 -b$b1 -d0 > output1
+      ./ccbench -a30 -b$b1 -d1 > output2
+      ./ccbench -a30 -b$b1 -d2 > output3
+        while [ $b2 -lt `expr 41 - $b1` ]
+        do
+            for d in 0 1 2
+            do
+              case "$d" in
+      	        0)
+      	          #hyperthreading
+                  g=`expr $b1 / 2`
+                  while [ `expr $g + $b2 / 2` -lt 21 ]
+                  do
+                    cat output1 > lightweight_two_ccbench/ccbench1_${b1}_CPUs_ccbench2_${b2}_CPUs_Hyperthreading_start${g}
+                    ./ccbench -a30 -b$b2 -d$d -g$g >> lightweight_two_ccbench/ccbench1_${b1}_CPUs_ccbench2_${b2}_CPUs_Hyperthreading_start${g}
+                    echo "./ccbench -a$a -b$b1 -d$d & ./ccbench -a$a -b$b2 -d$d -g$g"
+                    ./ccbench -a30 -b$b1 -d$d > temp1 & ./ccbench -a30 -b$b2 -d$d -g$g > temp2
+                    sleep 1
+                    cat temp1 >> lightweight_two_ccbench/ccbench1_${b1}_CPUs_ccbench2_${b2}_CPUs_Hyperthreading_start${g}
+                    cat temp2 >> lightweight_two_ccbench/ccbench1_${b1}_CPUs_ccbench2_${b2}_CPUs_Hyperthreading_start${g}
+                    g=`expr $g + 3`
+                  done
+                  ;;
+                1)
+                  #intra-socket
+                  g=$b1
+                  while [ `expr $g + $b2` -lt 41 ]
+                  do
+                    cat output2 > lightweight_two_ccbench/ccbench1_${b1}_CPUs_ccbench2_${b2}_CPUs_Intra_Socket_start${g}
+                    ./ccbench -a30 -b$b2 -d$d -g$g >> lightweight_two_ccbench/ccbench1_${b1}_CPUs_ccbench2_${b2}_CPUs_Intra_Socket_start${g}
+                    echo "./ccbench -a$a -b$b1 -d$d & ./ccbench -a$a -b$b2 -d$d -g$g"
+                    ./ccbench -a30 -b$b1 -d$d > temp1 & ./ccbench -a30 -b$b2 -d$d -g$g > temp2
+                    sleep 1
+                    cat temp1 >> lightweight_two_ccbench/ccbench1_${b1}_CPUs_ccbench2_${b2}_CPUs_Intra_Socket_start${g}
+                    cat temp2 >> lightweight_two_ccbench/ccbench1_${b1}_CPUs_ccbench2_${b2}_CPUs_Intra_Socket_start${g}                   
+                    g=`expr $g + 3`
+                  done
+                  ;;
+                2)
+                  #inter-socket
+                  g=`expr $b1 / 2`
+                  while [ `expr $g + $b2 / 2` -lt 41 ]
+                  do
+                    cat output3 > lightweight_two_ccbench/ccbench1_${b1}_CPUs_ccbench2_${b2}_CPUs_Inter_Socket_start${g}
+                    ./ccbench -a30 -b$b2 -d$d -g$g >> lightweight_two_ccbench/ccbench1_${b1}_CPUs_ccbench2_${b2}_CPUs_Inter_Socket_start${g}
+                    echo "./ccbench -a$a -b$b1 -d$d & ./ccbench -a$a -b$b2 -d$d -g$g"
+                    ./ccbench -a30 -b$b1 -d$d > temp1 & ./ccbench -a30 -b$b2 -d$d -g$g > temp2
+                    sleep 1
+                    cat temp1 >> lightweight_two_ccbench/ccbench1_${b1}_CPUs_ccbench2_${b2}_CPUs_Inter_Socket_start${g}
+                    cat temp2 >> lightweight_two_ccbench/ccbench1_${b1}_CPUs_ccbench2_${b2}_CPUs_Inter_Socket_start${g}                    
+                    if [ `expr $g + 3` -ge 10 ]; then
+                      g=`expr $g + 10`
+                    fi
+                    g=`expr $g + 3`
+                  done
+                  ;;
+              esac
+            done
+          b2=`expr $b2 + 4`
+        done
+      b1=`expr $b1 + 6`
+    done
 }
 
 #run_ccbench_linked_list: run one my_ccbench, one lock-free linked list
@@ -374,10 +455,10 @@ for i; do
   -e)
     specific=$2
     shift
-    number='^[1-5]+$'
+    number='^[1-6]+$'
     if ! [[ $specific =~ $number ]]; then
       usage
-      echo "-e must be followed by a number from 1 to 5"; exit 1
+      echo "-e must be followed by a number from 1 to 6"; exit 1
     fi
     shift;;
   --)
@@ -407,6 +488,10 @@ if [[ $specific != "" ]]; then
     5)
       echo "run one my_ccbench and one original_ccbench"
       run_my_original_ccbench
+      ;;
+    6)
+      echo "run two my_ccbench but lightweight"
+      run_lightweight_two_my_ccbench
       ;;
   esac
   exit 0
