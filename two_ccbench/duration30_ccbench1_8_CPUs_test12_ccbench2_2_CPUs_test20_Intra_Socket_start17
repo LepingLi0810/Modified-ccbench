@@ -1,0 +1,44 @@
+test:          CAS_SUCCESS  / #threads: 8 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 05 (CPU 5) operation_executed 10611 
+Thread 07 (CPU 7) operation_executed 3255337 
+Thread 06 (CPU 6) operation_executed 3603087 
+Thread 03 (CPU 3) operation_executed 9831014 
+Thread 04 (CPU 4) operation_executed 17185734 
+Thread 00 (CPU 0) operation_executed 17731432 
+Thread 02 (CPU 2) operation_executed 23506023 
+Thread 01 (CPU 1) operation_executed 28397118 
+Execution: Total = 103520356, Avg = 12940044.50 Max = 28397118 Min = 10611
+Fairness index: 0.641271
+Average atomic execution time(ns) = 289.798076
+
+
+test:   TAS_DIFFERENT_LINE  / #threads: 2 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 01 (CPU 18) operation_executed 396790800 
+Thread 00 (CPU 17) operation_executed 407040057 
+Execution: Total = 803830857, Avg = 401915428.50 Max = 407040057 Min = 396790800
+Fairness index: 0.999837
+Average atomic execution time(ns) = 37.321284
+
+
+test:          CAS_SUCCESS  / #threads: 8 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 02 (CPU 2) operation_executed 7772824 
+Thread 03 (CPU 3) operation_executed 13046638 
+Thread 00 (CPU 0) operation_executed 13284083 
+Thread 01 (CPU 1) operation_executed 13326842 
+Thread 04 (CPU 4) operation_executed 13452846 
+Thread 05 (CPU 5) operation_executed 13682933 
+Thread 06 (CPU 6) operation_executed 13689429 
+Thread 07 (CPU 7) operation_executed 14034094 
+Execution: Total = 102289689, Avg = 12786211.12 Max = 14034094 Min = 7772824
+Fairness index: 0.978042
+Average atomic execution time(ns) = 293.284693
+
+
+test:   TAS_DIFFERENT_LINE  / #threads: 2 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 01 (CPU 18) operation_executed 284325994 
+Thread 00 (CPU 17) operation_executed 284907513 
+Execution: Total = 569233507, Avg = 284616753.50 Max = 284907513 Min = 284325994
+Fairness index: 0.999999
+Average atomic execution time(ns) = 52.702449
+
+

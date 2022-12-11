@@ -1,0 +1,44 @@
+test:          CAS_SUCCESS  / #threads: 8 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 05 (CPU 5) operation_executed 10611 
+Thread 07 (CPU 7) operation_executed 3255337 
+Thread 06 (CPU 6) operation_executed 3603087 
+Thread 03 (CPU 3) operation_executed 9831014 
+Thread 04 (CPU 4) operation_executed 17185734 
+Thread 00 (CPU 0) operation_executed 17731432 
+Thread 02 (CPU 2) operation_executed 23506023 
+Thread 01 (CPU 1) operation_executed 28397118 
+Execution: Total = 103520356, Avg = 12940044.50 Max = 28397118 Min = 10611
+Fairness index: 0.641271
+Average atomic execution time(ns) = 289.798076
+
+
+test:   CAS_DIFFERENT_LINE  / #threads: 2 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 29) operation_executed 328107838 
+Thread 01 (CPU 30) operation_executed 506880970 
+Execution: Total = 834988808, Avg = 417494404.00 Max = 506880970 Min = 328107838
+Fairness index: 0.956169
+Average atomic execution time(ns) = 35.928625
+
+
+test:          CAS_SUCCESS  / #threads: 8 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 02 (CPU 2) operation_executed 4306220 
+Thread 03 (CPU 3) operation_executed 7257958 
+Thread 00 (CPU 0) operation_executed 7318269 
+Thread 01 (CPU 1) operation_executed 7587501 
+Thread 04 (CPU 4) operation_executed 7756041 
+Thread 06 (CPU 6) operation_executed 7931225 
+Thread 05 (CPU 5) operation_executed 8119638 
+Thread 07 (CPU 7) operation_executed 8404903 
+Execution: Total = 58681755, Avg = 7335219.38 Max = 8404903 Min = 4306220
+Fairness index: 0.973898
+Average atomic execution time(ns) = 511.232154
+
+
+test:   CAS_DIFFERENT_LINE  / #threads: 2 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 29) operation_executed 10536656 
+Thread 01 (CPU 30) operation_executed 64594389 
+Execution: Total = 75131045, Avg = 37565522.50 Max = 64594389 Min = 10536656
+Fairness index: 0.658892
+Average atomic execution time(ns) = 399.302312
+
+

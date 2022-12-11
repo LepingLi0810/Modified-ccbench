@@ -1,0 +1,44 @@
+test:          CAS_SUCCESS  / #threads: 4 / #duration: 30s / placement:                 Hyperthreading  / fence:  none
+Thread 00 (CPU 0) operation_executed 73492894 
+Thread 01 (CPU 1) operation_executed 73517196 
+Thread 02 (CPU 20) operation_executed 82630815 
+Thread 03 (CPU 21) operation_executed 87453676 
+Execution: Total = 317094581, Avg = 79273645.25 Max = 87453676 Min = 73492894
+Fairness index: 0.994275
+Average atomic execution time(ns) = 94.608996
+
+
+test:          TAS_SUCCESS  / #threads: 6 / #duration: 30s / placement:                 Hyperthreading  / fence:  none
+Thread 05 (CPU 27) operation_executed 106648117 
+Thread 01 (CPU 6) operation_executed 141114639 
+Thread 04 (CPU 26) operation_executed 141557587 
+Thread 00 (CPU 5) operation_executed 144275283 
+Thread 03 (CPU 25) operation_executed 144458289 
+Thread 02 (CPU 7) operation_executed 172305991 
+Execution: Total = 850359906, Avg = 141726651.00 Max = 172305991 Min = 106648117
+Fairness index: 0.982233
+Average atomic execution time(ns) = 35.279180
+
+
+test:          CAS_SUCCESS  / #threads: 4 / #duration: 30s / placement:                 Hyperthreading  / fence:  none
+Thread 03 (CPU 21) operation_executed 3082499 
+Thread 01 (CPU 1) operation_executed 3085424 
+Thread 00 (CPU 0) operation_executed 3879492 
+Thread 02 (CPU 20) operation_executed 4233497 
+Execution: Total = 14280912, Avg = 3570228.00 Max = 4233497 Min = 3082499
+Fairness index: 0.980604
+Average atomic execution time(ns) = 2100.706173
+
+
+test:          TAS_SUCCESS  / #threads: 6 / #duration: 30s / placement:                 Hyperthreading  / fence:  none
+Thread 05 (CPU 27) operation_executed 92001408 
+Thread 01 (CPU 6) operation_executed 92031677 
+Thread 04 (CPU 26) operation_executed 92045254 
+Thread 02 (CPU 7) operation_executed 92525424 
+Thread 03 (CPU 25) operation_executed 92775719 
+Thread 00 (CPU 5) operation_executed 93035808 
+Execution: Total = 554415290, Avg = 92402548.33 Max = 93035808 Min = 92001408
+Fairness index: 0.999981
+Average atomic execution time(ns) = 54.111062
+
+

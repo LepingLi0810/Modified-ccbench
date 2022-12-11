@@ -1,0 +1,44 @@
+test:   CAS_DIFFERENT_LINE  / #threads: 4 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 0) operation_executed 1471909 
+Thread 02 (CPU 2) operation_executed 56212972 
+Thread 03 (CPU 3) operation_executed 58695102 
+Thread 01 (CPU 1) operation_executed 114559246 
+Execution: Total = 230939229, Avg = 57734807.25 Max = 114559246 Min = 1471909
+Fairness index: 0.675750
+Average atomic execution time(ns) = 129.904305
+
+
+test:          CAS_SUCCESS  / #threads: 6 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 02 (CPU 6) operation_executed 63030 
+Thread 01 (CPU 5) operation_executed 4919912 
+Thread 00 (CPU 4) operation_executed 7390228 
+Thread 05 (CPU 9) operation_executed 23553281 
+Thread 03 (CPU 7) operation_executed 28042634 
+Thread 04 (CPU 8) operation_executed 80969681 
+Execution: Total = 144938766, Avg = 24156461.00 Max = 80969681 Min = 63030
+Fairness index: 0.438965
+Average atomic execution time(ns) = 206.983962
+
+
+test:   CAS_DIFFERENT_LINE  / #threads: 4 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 02 (CPU 2) operation_executed 27589 
+Thread 00 (CPU 0) operation_executed 11172342 
+Thread 03 (CPU 3) operation_executed 11554821 
+Thread 01 (CPU 1) operation_executed 13842181 
+Execution: Total = 36596933, Avg = 9149233.25 Max = 13842181 Min = 27589
+Fairness index: 0.744171
+Average atomic execution time(ns) = 819.740824
+
+
+test:          CAS_SUCCESS  / #threads: 6 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 4) operation_executed 1318951 
+Thread 03 (CPU 7) operation_executed 8479374 
+Thread 02 (CPU 6) operation_executed 8707785 
+Thread 04 (CPU 8) operation_executed 8819761 
+Thread 05 (CPU 9) operation_executed 9404451 
+Thread 01 (CPU 5) operation_executed 10479243 
+Execution: Total = 47209565, Avg = 7868260.83 Max = 10479243 Min = 1318951
+Fairness index: 0.872967
+Average atomic execution time(ns) = 635.464445
+
+

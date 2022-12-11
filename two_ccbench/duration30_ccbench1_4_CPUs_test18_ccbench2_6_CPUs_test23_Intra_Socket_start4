@@ -1,0 +1,44 @@
+test:          TAS_SUCCESS  / #threads: 4 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 01 (CPU 1) operation_executed 167669649 
+Thread 02 (CPU 2) operation_executed 192883104 
+Thread 00 (CPU 0) operation_executed 194467812 
+Thread 03 (CPU 3) operation_executed 219727618 
+Execution: Total = 774748183, Avg = 193687045.75 Max = 219727618 Min = 167669649
+Fairness index: 0.991043
+Average atomic execution time(ns) = 38.722259
+
+
+test:  SWAP_DIFFERENT_LINE  / #threads: 6 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 4) operation_executed 75100755 
+Thread 01 (CPU 5) operation_executed 75296277 
+Thread 05 (CPU 9) operation_executed 79991506 
+Thread 04 (CPU 8) operation_executed 80659885 
+Thread 03 (CPU 7) operation_executed 82221126 
+Thread 02 (CPU 6) operation_executed 82850689 
+Execution: Total = 476120238, Avg = 79353373.00 Max = 82850689 Min = 75100755
+Fairness index: 0.998491
+Average atomic execution time(ns) = 63.009294
+
+
+test:          TAS_SUCCESS  / #threads: 4 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 0) operation_executed 82187664 
+Thread 02 (CPU 2) operation_executed 84188771 
+Thread 01 (CPU 1) operation_executed 87314865 
+Thread 03 (CPU 3) operation_executed 90730000 
+Execution: Total = 344421300, Avg = 86105325.00 Max = 90730000 Min = 82187664
+Fairness index: 0.998590
+Average atomic execution time(ns) = 87.102627
+
+
+test:  SWAP_DIFFERENT_LINE  / #threads: 6 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 02 (CPU 6) operation_executed 35122062 
+Thread 03 (CPU 7) operation_executed 58741422 
+Thread 04 (CPU 8) operation_executed 59988520 
+Thread 05 (CPU 9) operation_executed 63016280 
+Thread 01 (CPU 5) operation_executed 68451680 
+Thread 00 (CPU 4) operation_executed 71670343 
+Execution: Total = 356990307, Avg = 59498384.50 Max = 71670343 Min = 35122062
+Fairness index: 0.962144
+Average atomic execution time(ns) = 84.035895
+
+

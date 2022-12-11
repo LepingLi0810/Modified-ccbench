@@ -1,0 +1,44 @@
+test:          CAS_SUCCESS  / #threads: 4 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 0) operation_executed 78718168 
+Thread 02 (CPU 2) operation_executed 101363675 
+Thread 03 (CPU 3) operation_executed 107786187 
+Thread 01 (CPU 1) operation_executed 117824277 
+Execution: Total = 405692307, Avg = 101423076.75 Max = 117824277 Min = 78718168
+Fairness index: 0.980344
+Average atomic execution time(ns) = 73.947668
+
+
+test:   CAS_DIFFERENT_LINE  / #threads: 6 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 05 (CPU 27) operation_executed 123858170 
+Thread 03 (CPU 25) operation_executed 125277259 
+Thread 01 (CPU 23) operation_executed 126568873 
+Thread 00 (CPU 22) operation_executed 126872461 
+Thread 04 (CPU 26) operation_executed 128464942 
+Thread 02 (CPU 24) operation_executed 129946369 
+Execution: Total = 760988074, Avg = 126831345.67 Max = 129946369 Min = 123858170
+Fairness index: 0.999755
+Average atomic execution time(ns) = 39.422431
+
+
+test:          CAS_SUCCESS  / #threads: 4 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 02 (CPU 2) operation_executed 3196892 
+Thread 03 (CPU 3) operation_executed 4918019 
+Thread 01 (CPU 1) operation_executed 36848329 
+Thread 00 (CPU 0) operation_executed 43352503 
+Execution: Total = 88315743, Avg = 22078935.75 Max = 43352503 Min = 3196892
+Fairness index: 0.596005
+Average atomic execution time(ns) = 339.690286
+
+
+test:   CAS_DIFFERENT_LINE  / #threads: 6 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 22) operation_executed 3590098 
+Thread 01 (CPU 23) operation_executed 3967076 
+Thread 04 (CPU 26) operation_executed 4338431 
+Thread 02 (CPU 24) operation_executed 4807339 
+Thread 03 (CPU 25) operation_executed 5055883 
+Thread 05 (CPU 27) operation_executed 14250072 
+Execution: Total = 36008899, Avg = 6001483.17 Max = 14250072 Min = 3590098
+Fairness index: 0.722317
+Average atomic execution time(ns) = 833.127389
+
+

@@ -1,0 +1,44 @@
+test:          CAS_SUCCESS  / #threads: 8 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 05 (CPU 5) operation_executed 10611 
+Thread 07 (CPU 7) operation_executed 3255337 
+Thread 06 (CPU 6) operation_executed 3603087 
+Thread 03 (CPU 3) operation_executed 9831014 
+Thread 04 (CPU 4) operation_executed 17185734 
+Thread 00 (CPU 0) operation_executed 17731432 
+Thread 02 (CPU 2) operation_executed 23506023 
+Thread 01 (CPU 1) operation_executed 28397118 
+Execution: Total = 103520356, Avg = 12940044.50 Max = 28397118 Min = 10611
+Fairness index: 0.641271
+Average atomic execution time(ns) = 289.798076
+
+
+test:   CAS_DIFFERENT_WORD  / #threads: 2 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 26) operation_executed 553267352 
+Thread 01 (CPU 27) operation_executed 560167796 
+Execution: Total = 1113435148, Avg = 556717574.00 Max = 560167796 Min = 553267352
+Fairness index: 0.999962
+Average atomic execution time(ns) = 26.943644
+
+
+test:          CAS_SUCCESS  / #threads: 8 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 06 (CPU 6) operation_executed 40663 
+Thread 01 (CPU 1) operation_executed 53830 
+Thread 07 (CPU 7) operation_executed 57811 
+Thread 00 (CPU 0) operation_executed 5004337 
+Thread 02 (CPU 2) operation_executed 9914345 
+Thread 04 (CPU 4) operation_executed 11150655 
+Thread 05 (CPU 5) operation_executed 19440358 
+Thread 03 (CPU 3) operation_executed 52403034 
+Execution: Total = 98065033, Avg = 12258129.12 Max = 52403034 Min = 40663
+Fairness index: 0.356526
+Average atomic execution time(ns) = 305.919440
+
+
+test:   CAS_DIFFERENT_WORD  / #threads: 2 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 26) operation_executed 72782 
+Thread 01 (CPU 27) operation_executed 50903254 
+Execution: Total = 50976036, Avg = 25488018.00 Max = 50903254 Min = 72782
+Fairness index: 0.501430
+Average atomic execution time(ns) = 588.511825
+
+

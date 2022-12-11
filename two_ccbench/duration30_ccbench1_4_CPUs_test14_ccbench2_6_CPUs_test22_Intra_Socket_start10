@@ -1,0 +1,44 @@
+test:   CAS_DIFFERENT_LINE  / #threads: 4 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 0) operation_executed 1471909 
+Thread 02 (CPU 2) operation_executed 56212972 
+Thread 03 (CPU 3) operation_executed 58695102 
+Thread 01 (CPU 1) operation_executed 114559246 
+Execution: Total = 230939229, Avg = 57734807.25 Max = 114559246 Min = 1471909
+Fairness index: 0.675750
+Average atomic execution time(ns) = 129.904305
+
+
+test:  SWAP_DIFFERENT_WORD  / #threads: 6 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 02 (CPU 12) operation_executed 63881212 
+Thread 05 (CPU 15) operation_executed 92802727 
+Thread 03 (CPU 13) operation_executed 94695342 
+Thread 04 (CPU 14) operation_executed 96669252 
+Thread 00 (CPU 10) operation_executed 97963614 
+Thread 01 (CPU 11) operation_executed 98296340 
+Execution: Total = 544308487, Avg = 90718081.17 Max = 98296340 Min = 63881212
+Fairness index: 0.982379
+Average atomic execution time(ns) = 55.115804
+
+
+test:   CAS_DIFFERENT_LINE  / #threads: 4 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 0) operation_executed 42773049 
+Thread 03 (CPU 3) operation_executed 44101952 
+Thread 01 (CPU 1) operation_executed 45966670 
+Thread 02 (CPU 2) operation_executed 47094053 
+Execution: Total = 179935724, Avg = 44983931.00 Max = 47094053 Min = 42773049
+Fairness index: 0.998632
+Average atomic execution time(ns) = 166.726203
+
+
+test:  SWAP_DIFFERENT_WORD  / #threads: 6 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 04 (CPU 14) operation_executed 53577868 
+Thread 03 (CPU 13) operation_executed 74688845 
+Thread 00 (CPU 10) operation_executed 75103628 
+Thread 05 (CPU 15) operation_executed 75518732 
+Thread 01 (CPU 11) operation_executed 77478262 
+Thread 02 (CPU 12) operation_executed 77934864 
+Execution: Total = 434302199, Avg = 72383699.83 Max = 77934864 Min = 53577868
+Fairness index: 0.986414
+Average atomic execution time(ns) = 69.076325
+
+

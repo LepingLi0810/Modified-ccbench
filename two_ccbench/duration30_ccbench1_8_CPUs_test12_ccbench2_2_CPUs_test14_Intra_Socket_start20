@@ -1,0 +1,44 @@
+test:          CAS_SUCCESS  / #threads: 8 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 05 (CPU 5) operation_executed 10611 
+Thread 07 (CPU 7) operation_executed 3255337 
+Thread 06 (CPU 6) operation_executed 3603087 
+Thread 03 (CPU 3) operation_executed 9831014 
+Thread 04 (CPU 4) operation_executed 17185734 
+Thread 00 (CPU 0) operation_executed 17731432 
+Thread 02 (CPU 2) operation_executed 23506023 
+Thread 01 (CPU 1) operation_executed 28397118 
+Execution: Total = 103520356, Avg = 12940044.50 Max = 28397118 Min = 10611
+Fairness index: 0.641271
+Average atomic execution time(ns) = 289.798076
+
+
+test:   CAS_DIFFERENT_LINE  / #threads: 2 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 01 (CPU 21) operation_executed 446422789 
+Thread 00 (CPU 20) operation_executed 456111090 
+Execution: Total = 902533879, Avg = 451266939.50 Max = 456111090 Min = 446422789
+Fairness index: 0.999885
+Average atomic execution time(ns) = 33.239749
+
+
+test:          CAS_SUCCESS  / #threads: 8 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 05 (CPU 5) operation_executed 20413 
+Thread 00 (CPU 0) operation_executed 444988 
+Thread 01 (CPU 1) operation_executed 544785 
+Thread 06 (CPU 6) operation_executed 7424147 
+Thread 07 (CPU 7) operation_executed 7640367 
+Thread 03 (CPU 3) operation_executed 18127804 
+Thread 04 (CPU 4) operation_executed 28178785 
+Thread 02 (CPU 2) operation_executed 41380732 
+Execution: Total = 103762021, Avg = 12970252.62 Max = 41380732 Min = 20413
+Fairness index: 0.456362
+Average atomic execution time(ns) = 289.123127
+
+
+test:   CAS_DIFFERENT_LINE  / #threads: 2 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 20) operation_executed 3566673 
+Thread 01 (CPU 21) operation_executed 5112170 
+Execution: Total = 8678843, Avg = 4339421.50 Max = 5112170 Min = 3566673
+Fairness index: 0.969263
+Average atomic execution time(ns) = 3456.681956
+
+

@@ -1,0 +1,44 @@
+test:   CAS_DIFFERENT_LINE  / #threads: 4 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 0) operation_executed 1471909 
+Thread 02 (CPU 2) operation_executed 56212972 
+Thread 03 (CPU 3) operation_executed 58695102 
+Thread 01 (CPU 1) operation_executed 114559246 
+Execution: Total = 230939229, Avg = 57734807.25 Max = 114559246 Min = 1471909
+Fairness index: 0.675750
+Average atomic execution time(ns) = 129.904305
+
+
+test:   CAS_DIFFERENT_LINE  / #threads: 6 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 04 (CPU 32) operation_executed 53418834 
+Thread 02 (CPU 30) operation_executed 53928118 
+Thread 03 (CPU 31) operation_executed 54065663 
+Thread 05 (CPU 33) operation_executed 54231680 
+Thread 01 (CPU 29) operation_executed 86852974 
+Thread 00 (CPU 28) operation_executed 100274631 
+Execution: Total = 402771900, Avg = 67128650.00 Max = 100274631 Min = 53418834
+Fairness index: 0.925169
+Average atomic execution time(ns) = 74.483846
+
+
+test:   CAS_DIFFERENT_LINE  / #threads: 4 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 0) operation_executed 10061287 
+Thread 02 (CPU 2) operation_executed 11465850 
+Thread 01 (CPU 1) operation_executed 11817118 
+Thread 03 (CPU 3) operation_executed 11921077 
+Execution: Total = 45265332, Avg = 11316333.00 Max = 11921077 Min = 10061287
+Fairness index: 0.995696
+Average atomic execution time(ns) = 662.758864
+
+
+test:   CAS_DIFFERENT_LINE  / #threads: 6 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 28) operation_executed 9367245 
+Thread 01 (CPU 29) operation_executed 9426607 
+Thread 02 (CPU 30) operation_executed 25612449 
+Thread 05 (CPU 33) operation_executed 26455782 
+Thread 03 (CPU 31) operation_executed 27971301 
+Thread 04 (CPU 32) operation_executed 29099841 
+Execution: Total = 127933225, Avg = 21322204.17 Max = 29099841 Min = 9367245
+Fairness index: 0.862768
+Average atomic execution time(ns) = 234.497332
+
+

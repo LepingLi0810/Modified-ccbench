@@ -1,0 +1,44 @@
+test:          CAS_SUCCESS  / #threads: 8 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 05 (CPU 5) operation_executed 10611 
+Thread 07 (CPU 7) operation_executed 3255337 
+Thread 06 (CPU 6) operation_executed 3603087 
+Thread 03 (CPU 3) operation_executed 9831014 
+Thread 04 (CPU 4) operation_executed 17185734 
+Thread 00 (CPU 0) operation_executed 17731432 
+Thread 02 (CPU 2) operation_executed 23506023 
+Thread 01 (CPU 1) operation_executed 28397118 
+Execution: Total = 103520356, Avg = 12940044.50 Max = 28397118 Min = 10611
+Fairness index: 0.641271
+Average atomic execution time(ns) = 289.798076
+
+
+test:   TAS_DIFFERENT_LINE  / #threads: 2 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 29) operation_executed 443837001 
+Thread 01 (CPU 30) operation_executed 675534678 
+Execution: Total = 1119371679, Avg = 559685839.50 Max = 675534678 Min = 443837001
+Fairness index: 0.958916
+Average atomic execution time(ns) = 26.800750
+
+
+test:          CAS_SUCCESS  / #threads: 8 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 07 (CPU 7) operation_executed 12307712 
+Thread 05 (CPU 5) operation_executed 19272743 
+Thread 06 (CPU 6) operation_executed 19673921 
+Thread 04 (CPU 4) operation_executed 20073677 
+Thread 02 (CPU 2) operation_executed 20374059 
+Thread 03 (CPU 3) operation_executed 20511147 
+Thread 00 (CPU 0) operation_executed 20870742 
+Thread 01 (CPU 1) operation_executed 21250346 
+Execution: Total = 154334347, Avg = 19291793.38 Max = 21250346 Min = 12307712
+Fairness index: 0.980723
+Average atomic execution time(ns) = 194.383173
+
+
+test:   TAS_DIFFERENT_LINE  / #threads: 2 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 29) operation_executed 41022960 
+Thread 01 (CPU 30) operation_executed 553900434 
+Execution: Total = 594923394, Avg = 297461697.00 Max = 553900434 Min = 41022960
+Fairness index: 0.573658
+Average atomic execution time(ns) = 50.426660
+
+

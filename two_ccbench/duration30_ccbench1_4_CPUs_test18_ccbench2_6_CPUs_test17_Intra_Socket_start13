@@ -1,0 +1,44 @@
+test:          TAS_SUCCESS  / #threads: 4 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 01 (CPU 1) operation_executed 167669649 
+Thread 02 (CPU 2) operation_executed 192883104 
+Thread 00 (CPU 0) operation_executed 194467812 
+Thread 03 (CPU 3) operation_executed 219727618 
+Execution: Total = 774748183, Avg = 193687045.75 Max = 219727618 Min = 167669649
+Fairness index: 0.991043
+Average atomic execution time(ns) = 38.722259
+
+
+test:   FAI_DIFFERENT_LINE  / #threads: 6 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 02 (CPU 15) operation_executed 131898215 
+Thread 00 (CPU 13) operation_executed 134440255 
+Thread 03 (CPU 16) operation_executed 134675474 
+Thread 05 (CPU 18) operation_executed 136704206 
+Thread 01 (CPU 14) operation_executed 137087502 
+Thread 04 (CPU 17) operation_executed 138918546 
+Execution: Total = 813724198, Avg = 135620699.67 Max = 138918546 Min = 131898215
+Fairness index: 0.999725
+Average atomic execution time(ns) = 36.867528
+
+
+test:          TAS_SUCCESS  / #threads: 4 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 02 (CPU 2) operation_executed 72085265 
+Thread 00 (CPU 0) operation_executed 89335631 
+Thread 01 (CPU 1) operation_executed 97401472 
+Thread 03 (CPU 3) operation_executed 101816117 
+Execution: Total = 360638485, Avg = 90159621.25 Max = 101816117 Min = 72085265
+Fairness index: 0.984388
+Average atomic execution time(ns) = 83.185798
+
+
+test:   FAI_DIFFERENT_LINE  / #threads: 6 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 13) operation_executed 92882550 
+Thread 01 (CPU 14) operation_executed 92961050 
+Thread 04 (CPU 17) operation_executed 93678585 
+Thread 02 (CPU 15) operation_executed 93922387 
+Thread 03 (CPU 16) operation_executed 94242698 
+Thread 05 (CPU 18) operation_executed 94615893 
+Execution: Total = 562303163, Avg = 93717193.83 Max = 94615893 Min = 92882550
+Fairness index: 0.999955
+Average atomic execution time(ns) = 53.352003
+
+

@@ -1,0 +1,44 @@
+test:   CAS_DIFFERENT_LINE  / #threads: 4 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 0) operation_executed 1471909 
+Thread 02 (CPU 2) operation_executed 56212972 
+Thread 03 (CPU 3) operation_executed 58695102 
+Thread 01 (CPU 1) operation_executed 114559246 
+Execution: Total = 230939229, Avg = 57734807.25 Max = 114559246 Min = 1471909
+Fairness index: 0.675750
+Average atomic execution time(ns) = 129.904305
+
+
+test:  SWAP_DIFFERENT_LINE  / #threads: 6 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 22) operation_executed 57438375 
+Thread 04 (CPU 26) operation_executed 82457638 
+Thread 05 (CPU 27) operation_executed 82986662 
+Thread 01 (CPU 23) operation_executed 83124070 
+Thread 03 (CPU 25) operation_executed 83842608 
+Thread 02 (CPU 24) operation_executed 85567702 
+Execution: Total = 475417055, Avg = 79236175.83 Max = 85567702 Min = 57438375
+Fairness index: 0.984939
+Average atomic execution time(ns) = 63.102490
+
+
+test:   CAS_DIFFERENT_LINE  / #threads: 4 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 0) operation_executed 28507429 
+Thread 03 (CPU 3) operation_executed 39565287 
+Thread 02 (CPU 2) operation_executed 40102183 
+Thread 01 (CPU 1) operation_executed 106786324 
+Execution: Total = 214961223, Avg = 53740305.75 Max = 106786324 Min = 28507429
+Fairness index: 0.750643
+Average atomic execution time(ns) = 139.560055
+
+
+test:  SWAP_DIFFERENT_LINE  / #threads: 6 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 01 (CPU 23) operation_executed 44050911 
+Thread 00 (CPU 22) operation_executed 45340442 
+Thread 03 (CPU 25) operation_executed 63752765 
+Thread 02 (CPU 24) operation_executed 64405136 
+Thread 05 (CPU 27) operation_executed 69490916 
+Thread 04 (CPU 26) operation_executed 69852184 
+Execution: Total = 356892354, Avg = 59482059.00 Max = 69852184 Min = 44050911
+Fairness index: 0.968595
+Average atomic execution time(ns) = 84.058960
+
+

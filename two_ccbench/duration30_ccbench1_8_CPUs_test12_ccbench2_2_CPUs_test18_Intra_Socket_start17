@@ -1,0 +1,44 @@
+test:          CAS_SUCCESS  / #threads: 8 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 05 (CPU 5) operation_executed 10611 
+Thread 07 (CPU 7) operation_executed 3255337 
+Thread 06 (CPU 6) operation_executed 3603087 
+Thread 03 (CPU 3) operation_executed 9831014 
+Thread 04 (CPU 4) operation_executed 17185734 
+Thread 00 (CPU 0) operation_executed 17731432 
+Thread 02 (CPU 2) operation_executed 23506023 
+Thread 01 (CPU 1) operation_executed 28397118 
+Execution: Total = 103520356, Avg = 12940044.50 Max = 28397118 Min = 10611
+Fairness index: 0.641271
+Average atomic execution time(ns) = 289.798076
+
+
+test:          TAS_SUCCESS  / #threads: 2 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 01 (CPU 18) operation_executed 352466680 
+Thread 00 (CPU 17) operation_executed 510863838 
+Execution: Total = 863330518, Avg = 431665259.00 Max = 510863838 Min = 352466680
+Fairness index: 0.967434
+Average atomic execution time(ns) = 34.749148
+
+
+test:          CAS_SUCCESS  / #threads: 8 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 05 (CPU 5) operation_executed 7200390 
+Thread 04 (CPU 4) operation_executed 10559811 
+Thread 00 (CPU 0) operation_executed 10617737 
+Thread 03 (CPU 3) operation_executed 10622856 
+Thread 06 (CPU 6) operation_executed 10634672 
+Thread 07 (CPU 7) operation_executed 11130634 
+Thread 01 (CPU 1) operation_executed 11320329 
+Thread 02 (CPU 2) operation_executed 12076827 
+Execution: Total = 84163256, Avg = 10520407.00 Max = 12076827 Min = 7200390
+Fairness index: 0.983897
+Average atomic execution time(ns) = 356.450088
+
+
+test:          TAS_SUCCESS  / #threads: 2 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 17) operation_executed 251187869 
+Thread 01 (CPU 18) operation_executed 279076424 
+Execution: Total = 530264293, Avg = 265132146.50 Max = 279076424 Min = 251187869
+Fairness index: 0.997242
+Average atomic execution time(ns) = 56.575561
+
+

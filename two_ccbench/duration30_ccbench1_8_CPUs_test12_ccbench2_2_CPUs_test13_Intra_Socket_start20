@@ -1,0 +1,44 @@
+test:          CAS_SUCCESS  / #threads: 8 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 05 (CPU 5) operation_executed 10611 
+Thread 07 (CPU 7) operation_executed 3255337 
+Thread 06 (CPU 6) operation_executed 3603087 
+Thread 03 (CPU 3) operation_executed 9831014 
+Thread 04 (CPU 4) operation_executed 17185734 
+Thread 00 (CPU 0) operation_executed 17731432 
+Thread 02 (CPU 2) operation_executed 23506023 
+Thread 01 (CPU 1) operation_executed 28397118 
+Execution: Total = 103520356, Avg = 12940044.50 Max = 28397118 Min = 10611
+Fairness index: 0.641271
+Average atomic execution time(ns) = 289.798076
+
+
+test:   CAS_DIFFERENT_WORD  / #threads: 2 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 01 (CPU 21) operation_executed 425969853 
+Thread 00 (CPU 20) operation_executed 534995684 
+Execution: Total = 960965537, Avg = 480482768.50 Max = 534995684 Min = 425969853
+Fairness index: 0.987292
+Average atomic execution time(ns) = 31.218601
+
+
+test:          CAS_SUCCESS  / #threads: 8 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 0) operation_executed 24760 
+Thread 01 (CPU 1) operation_executed 26649 
+Thread 07 (CPU 7) operation_executed 36932 
+Thread 02 (CPU 2) operation_executed 7947433 
+Thread 04 (CPU 4) operation_executed 12112490 
+Thread 03 (CPU 3) operation_executed 19951134 
+Thread 05 (CPU 5) operation_executed 21885823 
+Thread 06 (CPU 6) operation_executed 33154770 
+Execution: Total = 95139991, Avg = 11892498.88 Max = 33154770 Min = 24760
+Fairness index: 0.517554
+Average atomic execution time(ns) = 315.324814
+
+
+test:   CAS_DIFFERENT_WORD  / #threads: 2 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 20) operation_executed 135925 
+Thread 01 (CPU 21) operation_executed 49242549 
+Execution: Total = 49378474, Avg = 24689237.00 Max = 49242549 Min = 135925
+Fairness index: 0.502760
+Average atomic execution time(ns) = 607.552190
+
+

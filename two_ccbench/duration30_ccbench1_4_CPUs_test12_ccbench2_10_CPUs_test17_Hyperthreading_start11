@@ -1,0 +1,42 @@
+test:          CAS_SUCCESS  / #threads: 4 / #duration: 30s / placement:                 Hyperthreading  / fence:  none
+Thread 00 (CPU 0) operation_executed 73492894 
+Thread 01 (CPU 1) operation_executed 73517196 
+Thread 02 (CPU 20) operation_executed 82630815 
+Thread 03 (CPU 21) operation_executed 87453676 
+Execution: Total = 317094581, Avg = 79273645.25 Max = 87453676 Min = 73492894
+Fairness index: 0.994275
+Average atomic execution time(ns) = 94.608996
+
+
+test:   FAI_DIFFERENT_LINE  / #threads: 10 / #duration: 30s / placement:                 Hyperthreading  / fence:  none
+Thread 02 (CPU 13) operation_executed 51034309 
+Thread 07 (CPU 33) operation_executed 51067922 
+Thread 09 (CPU 35) operation_executed 84588094 
+Thread 04 (CPU 15) operation_executed 84613521 
+Thread 08 (CPU 34) operation_executed 85172871 
+Thread 03 (CPU 14) operation_executed 85181874 
+Thread 06 (CPU 32) operation_executed 89136134 
+Thread 01 (CPU 12) operation_executed 89136689 
+Thread 00 (CPU 11) operation_executed 89473370 
+Thread 05 (CPU 31) operation_executed 89474600 
+Execution: Total = 798879384, Avg = 79887938.40 Max = 89474600 Min = 51034309
+Fairness index: 0.967874
+Average atomic execution time(ns) = 37.552603
+
+
+test:   FAI_DIFFERENT_LINE  / #threads: 10 / #duration: 30s / placement:                 Hyperthreading  / fence:  none
+Thread 07 (CPU 33) operation_executed 62063909 
+Thread 02 (CPU 13) operation_executed 62188927 
+Thread 09 (CPU 35) operation_executed 62460944 
+Thread 06 (CPU 32) operation_executed 62465185 
+Thread 01 (CPU 12) operation_executed 62465246 
+Thread 03 (CPU 14) operation_executed 62471732 
+Thread 08 (CPU 34) operation_executed 62538401 
+Thread 04 (CPU 15) operation_executed 62561455 
+Thread 05 (CPU 31) operation_executed 62563820 
+Thread 00 (CPU 11) operation_executed 62715333 
+Execution: Total = 624494952, Avg = 62449495.20 Max = 62715333 Min = 62063909
+Fairness index: 0.999992
+Average atomic execution time(ns) = 48.038819
+
+

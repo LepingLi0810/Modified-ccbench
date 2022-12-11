@@ -1,0 +1,52 @@
+test:          CAS_SUCCESS  / #threads: 4 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 0) operation_executed 78718168 
+Thread 02 (CPU 2) operation_executed 101363675 
+Thread 03 (CPU 3) operation_executed 107786187 
+Thread 01 (CPU 1) operation_executed 117824277 
+Execution: Total = 405692307, Avg = 101423076.75 Max = 117824277 Min = 78718168
+Fairness index: 0.980344
+Average atomic execution time(ns) = 73.947668
+
+
+test:   CAS_DIFFERENT_WORD  / #threads: 10 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 07 (CPU 29) operation_executed 55199848 
+Thread 04 (CPU 26) operation_executed 55329103 
+Thread 06 (CPU 28) operation_executed 55365946 
+Thread 05 (CPU 27) operation_executed 55466319 
+Thread 00 (CPU 22) operation_executed 55483678 
+Thread 02 (CPU 24) operation_executed 55588787 
+Thread 03 (CPU 25) operation_executed 56064964 
+Thread 01 (CPU 23) operation_executed 56067874 
+Thread 09 (CPU 31) operation_executed 254061384 
+Thread 08 (CPU 30) operation_executed 360681964 
+Execution: Total = 1059309867, Avg = 105930986.70 Max = 360681964 Min = 55199848
+Fairness index: 0.511587
+Average atomic execution time(ns) = 28.320325
+
+
+test:          CAS_SUCCESS  / #threads: 4 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 02 (CPU 2) operation_executed 6093561 
+Thread 03 (CPU 3) operation_executed 6911614 
+Thread 00 (CPU 0) operation_executed 14452492 
+Thread 01 (CPU 1) operation_executed 14894979 
+Execution: Total = 42352646, Avg = 10588161.50 Max = 14894979 Min = 6093561
+Fairness index: 0.869675
+Average atomic execution time(ns) = 708.338270
+
+
+test:   CAS_DIFFERENT_WORD  / #threads: 10 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 22) operation_executed 6240261 
+Thread 01 (CPU 23) operation_executed 22432864 
+Thread 06 (CPU 28) operation_executed 28551027 
+Thread 04 (CPU 26) operation_executed 43028576 
+Thread 02 (CPU 24) operation_executed 43867156 
+Thread 07 (CPU 29) operation_executed 43888163 
+Thread 03 (CPU 25) operation_executed 44298600 
+Thread 05 (CPU 27) operation_executed 44362024 
+Thread 08 (CPU 30) operation_executed 287245317 
+Thread 09 (CPU 31) operation_executed 294982756 
+Execution: Total = 858896744, Avg = 85889674.40 Max = 294982756 Min = 6240261
+Fairness index: 0.408668
+Average atomic execution time(ns) = 34.928529
+
+

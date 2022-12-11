@@ -1,0 +1,44 @@
+test:          CAS_SUCCESS  / #threads: 8 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 05 (CPU 5) operation_executed 10611 
+Thread 07 (CPU 7) operation_executed 3255337 
+Thread 06 (CPU 6) operation_executed 3603087 
+Thread 03 (CPU 3) operation_executed 9831014 
+Thread 04 (CPU 4) operation_executed 17185734 
+Thread 00 (CPU 0) operation_executed 17731432 
+Thread 02 (CPU 2) operation_executed 23506023 
+Thread 01 (CPU 1) operation_executed 28397118 
+Execution: Total = 103520356, Avg = 12940044.50 Max = 28397118 Min = 10611
+Fairness index: 0.641271
+Average atomic execution time(ns) = 289.798076
+
+
+test:   CAS_DIFFERENT_WORD  / #threads: 2 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 29) operation_executed 491077853 
+Thread 01 (CPU 30) operation_executed 747517341 
+Execution: Total = 1238595194, Avg = 619297597.00 Max = 747517341 Min = 491077853
+Fairness index: 0.958896
+Average atomic execution time(ns) = 24.220989
+
+
+test:          CAS_SUCCESS  / #threads: 8 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 04 (CPU 4) operation_executed 4242539 
+Thread 06 (CPU 6) operation_executed 7383438 
+Thread 00 (CPU 0) operation_executed 7424795 
+Thread 01 (CPU 1) operation_executed 7654775 
+Thread 05 (CPU 5) operation_executed 7743477 
+Thread 02 (CPU 2) operation_executed 7943220 
+Thread 07 (CPU 7) operation_executed 7987761 
+Thread 03 (CPU 3) operation_executed 8031864 
+Execution: Total = 58411869, Avg = 7301483.62 Max = 8031864 Min = 4242539
+Fairness index: 0.974599
+Average atomic execution time(ns) = 513.594249
+
+
+test:   CAS_DIFFERENT_WORD  / #threads: 2 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 29) operation_executed 8260849 
+Thread 01 (CPU 30) operation_executed 709830873 
+Execution: Total = 718091722, Avg = 359045861.00 Max = 709830873 Min = 8260849
+Fairness index: 0.511636
+Average atomic execution time(ns) = 41.777393
+
+

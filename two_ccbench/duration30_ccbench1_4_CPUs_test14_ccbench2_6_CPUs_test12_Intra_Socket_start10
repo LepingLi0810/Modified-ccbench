@@ -1,0 +1,44 @@
+test:   CAS_DIFFERENT_LINE  / #threads: 4 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 0) operation_executed 1471909 
+Thread 02 (CPU 2) operation_executed 56212972 
+Thread 03 (CPU 3) operation_executed 58695102 
+Thread 01 (CPU 1) operation_executed 114559246 
+Execution: Total = 230939229, Avg = 57734807.25 Max = 114559246 Min = 1471909
+Fairness index: 0.675750
+Average atomic execution time(ns) = 129.904305
+
+
+test:          CAS_SUCCESS  / #threads: 6 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 02 (CPU 12) operation_executed 42232 
+Thread 05 (CPU 15) operation_executed 5630931 
+Thread 01 (CPU 11) operation_executed 8216941 
+Thread 00 (CPU 10) operation_executed 25766851 
+Thread 04 (CPU 14) operation_executed 46318401 
+Thread 03 (CPU 13) operation_executed 58463669 
+Execution: Total = 144439025, Avg = 24073170.83 Max = 58463669 Min = 42232
+Fairness index: 0.549605
+Average atomic execution time(ns) = 207.700100
+
+
+test:   CAS_DIFFERENT_LINE  / #threads: 4 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 01 (CPU 1) operation_executed 6989245 
+Thread 03 (CPU 3) operation_executed 13117404 
+Thread 00 (CPU 0) operation_executed 13342129 
+Thread 02 (CPU 2) operation_executed 13892537 
+Execution: Total = 47341315, Avg = 11835328.75 Max = 13892537 Min = 6989245
+Fairness index: 0.946563
+Average atomic execution time(ns) = 633.695959
+
+
+test:          CAS_SUCCESS  / #threads: 6 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 01 (CPU 11) operation_executed 8928257 
+Thread 00 (CPU 10) operation_executed 17088918 
+Thread 03 (CPU 13) operation_executed 18232536 
+Thread 04 (CPU 14) operation_executed 18281518 
+Thread 02 (CPU 12) operation_executed 19150414 
+Thread 05 (CPU 15) operation_executed 19269660 
+Execution: Total = 100951303, Avg = 16825217.17 Max = 19269660 Min = 8928257
+Fairness index: 0.956140
+Average atomic execution time(ns) = 297.172984
+
+

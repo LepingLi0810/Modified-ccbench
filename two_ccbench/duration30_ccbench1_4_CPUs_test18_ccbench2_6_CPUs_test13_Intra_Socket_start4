@@ -1,0 +1,44 @@
+test:          TAS_SUCCESS  / #threads: 4 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 01 (CPU 1) operation_executed 167669649 
+Thread 02 (CPU 2) operation_executed 192883104 
+Thread 00 (CPU 0) operation_executed 194467812 
+Thread 03 (CPU 3) operation_executed 219727618 
+Execution: Total = 774748183, Avg = 193687045.75 Max = 219727618 Min = 167669649
+Fairness index: 0.991043
+Average atomic execution time(ns) = 38.722259
+
+
+test:   CAS_DIFFERENT_WORD  / #threads: 6 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 02 (CPU 6) operation_executed 81597936 
+Thread 00 (CPU 4) operation_executed 137029258 
+Thread 01 (CPU 5) operation_executed 141919447 
+Thread 05 (CPU 9) operation_executed 143020115 
+Thread 03 (CPU 7) operation_executed 147565136 
+Thread 04 (CPU 8) operation_executed 151067264 
+Execution: Total = 802199156, Avg = 133699859.33 Max = 151067264 Min = 81597936
+Fairness index: 0.969501
+Average atomic execution time(ns) = 37.397197
+
+
+test:          TAS_SUCCESS  / #threads: 4 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 02 (CPU 2) operation_executed 75919835 
+Thread 01 (CPU 1) operation_executed 77973217 
+Thread 00 (CPU 0) operation_executed 79948162 
+Thread 03 (CPU 3) operation_executed 82581556 
+Execution: Total = 316422770, Avg = 79105692.50 Max = 82581556 Min = 75919835
+Fairness index: 0.999033
+Average atomic execution time(ns) = 94.809865
+
+
+test:   CAS_DIFFERENT_WORD  / #threads: 6 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 4) operation_executed 94694 
+Thread 02 (CPU 6) operation_executed 42470602 
+Thread 04 (CPU 8) operation_executed 76654157 
+Thread 03 (CPU 7) operation_executed 76802470 
+Thread 05 (CPU 9) operation_executed 78524777 
+Thread 01 (CPU 5) operation_executed 82957886 
+Execution: Total = 357504586, Avg = 59584097.67 Max = 82957886 Min = 94694
+Fairness index: 0.800018
+Average atomic execution time(ns) = 83.915007
+
+

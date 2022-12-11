@@ -1,0 +1,44 @@
+test:          CAS_SUCCESS  / #threads: 8 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 05 (CPU 5) operation_executed 10611 
+Thread 07 (CPU 7) operation_executed 3255337 
+Thread 06 (CPU 6) operation_executed 3603087 
+Thread 03 (CPU 3) operation_executed 9831014 
+Thread 04 (CPU 4) operation_executed 17185734 
+Thread 00 (CPU 0) operation_executed 17731432 
+Thread 02 (CPU 2) operation_executed 23506023 
+Thread 01 (CPU 1) operation_executed 28397118 
+Execution: Total = 103520356, Avg = 12940044.50 Max = 28397118 Min = 10611
+Fairness index: 0.641271
+Average atomic execution time(ns) = 289.798076
+
+
+test:          TAS_SUCCESS  / #threads: 2 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 8) operation_executed 368425801 
+Thread 01 (CPU 9) operation_executed 368876359 
+Execution: Total = 737302160, Avg = 368651080.00 Max = 368876359 Min = 368425801
+Fairness index: 1.000000
+Average atomic execution time(ns) = 40.688881
+
+
+test:          CAS_SUCCESS  / #threads: 8 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 05 (CPU 5) operation_executed 8079474 
+Thread 00 (CPU 0) operation_executed 80971470 
+Thread 01 (CPU 1) operation_executed 81483629 
+Thread 02 (CPU 2) operation_executed 81650424 
+Thread 03 (CPU 3) operation_executed 82090101 
+Thread 06 (CPU 6) operation_executed 82477381 
+Thread 07 (CPU 7) operation_executed 83192716 
+Thread 04 (CPU 4) operation_executed 84026367 
+Execution: Total = 583971562, Avg = 72996445.25 Max = 84026367 Min = 8079474
+Fairness index: 0.898359
+Average atomic execution time(ns) = 51.372365
+
+
+test:          TAS_SUCCESS  / #threads: 2 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 8) operation_executed 69454582 
+Thread 01 (CPU 9) operation_executed 72913078 
+Execution: Total = 142367660, Avg = 71183830.00 Max = 72913078 Min = 69454582
+Fairness index: 0.999410
+Average atomic execution time(ns) = 210.722014
+
+

@@ -1,0 +1,44 @@
+test:          TAS_SUCCESS  / #threads: 4 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 01 (CPU 1) operation_executed 167669649 
+Thread 02 (CPU 2) operation_executed 192883104 
+Thread 00 (CPU 0) operation_executed 194467812 
+Thread 03 (CPU 3) operation_executed 219727618 
+Execution: Total = 774748183, Avg = 193687045.75 Max = 219727618 Min = 167669649
+Fairness index: 0.991043
+Average atomic execution time(ns) = 38.722259
+
+
+test:          CAS_SUCCESS  / #threads: 6 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 03 (CPU 7) operation_executed 83276 
+Thread 01 (CPU 5) operation_executed 7825671 
+Thread 05 (CPU 9) operation_executed 12197503 
+Thread 04 (CPU 8) operation_executed 19810147 
+Thread 00 (CPU 4) operation_executed 43405519 
+Thread 02 (CPU 6) operation_executed 58194330 
+Execution: Total = 141516446, Avg = 23586074.33 Max = 58194330 Min = 83276
+Fairness index: 0.568324
+Average atomic execution time(ns) = 211.989496
+
+
+test:          TAS_SUCCESS  / #threads: 4 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 01 (CPU 1) operation_executed 75683348 
+Thread 00 (CPU 0) operation_executed 76670815 
+Thread 02 (CPU 2) operation_executed 79075067 
+Thread 03 (CPU 3) operation_executed 79854440 
+Execution: Total = 311283670, Avg = 77820917.50 Max = 79854440 Min = 75683348
+Fairness index: 0.999521
+Average atomic execution time(ns) = 96.375117
+
+
+test:          CAS_SUCCESS  / #threads: 6 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 05 (CPU 9) operation_executed 44354 
+Thread 01 (CPU 5) operation_executed 3062215 
+Thread 00 (CPU 4) operation_executed 8655931 
+Thread 03 (CPU 7) operation_executed 15154863 
+Thread 02 (CPU 6) operation_executed 16487049 
+Thread 04 (CPU 8) operation_executed 16556182 
+Execution: Total = 59960594, Avg = 9993432.33 Max = 16556182 Min = 44354
+Fairness index: 0.696836
+Average atomic execution time(ns) = 500.328599
+
+

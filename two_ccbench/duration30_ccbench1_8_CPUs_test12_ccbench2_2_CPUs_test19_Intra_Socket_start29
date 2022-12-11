@@ -1,0 +1,44 @@
+test:          CAS_SUCCESS  / #threads: 8 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 05 (CPU 5) operation_executed 10611 
+Thread 07 (CPU 7) operation_executed 3255337 
+Thread 06 (CPU 6) operation_executed 3603087 
+Thread 03 (CPU 3) operation_executed 9831014 
+Thread 04 (CPU 4) operation_executed 17185734 
+Thread 00 (CPU 0) operation_executed 17731432 
+Thread 02 (CPU 2) operation_executed 23506023 
+Thread 01 (CPU 1) operation_executed 28397118 
+Execution: Total = 103520356, Avg = 12940044.50 Max = 28397118 Min = 10611
+Fairness index: 0.641271
+Average atomic execution time(ns) = 289.798076
+
+
+test:   TAS_DIFFERENT_WORD  / #threads: 2 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 29) operation_executed 424092763 
+Thread 01 (CPU 30) operation_executed 721465682 
+Execution: Total = 1145558445, Avg = 572779222.50 Max = 721465682 Min = 424092763
+Fairness index: 0.936868
+Average atomic execution time(ns) = 26.188101
+
+
+test:          CAS_SUCCESS  / #threads: 8 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 0) operation_executed 8399933 
+Thread 02 (CPU 2) operation_executed 8628535 
+Thread 01 (CPU 1) operation_executed 8754191 
+Thread 04 (CPU 4) operation_executed 8869968 
+Thread 07 (CPU 7) operation_executed 9253021 
+Thread 03 (CPU 3) operation_executed 9353205 
+Thread 05 (CPU 5) operation_executed 9497392 
+Thread 06 (CPU 6) operation_executed 10059103 
+Execution: Total = 72815348, Avg = 9101918.50 Max = 10059103 Min = 8399933
+Fairness index: 0.996916
+Average atomic execution time(ns) = 412.001052
+
+
+test:   TAS_DIFFERENT_WORD  / #threads: 2 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 29) operation_executed 25597775 
+Thread 01 (CPU 30) operation_executed 594290827 
+Execution: Total = 619888602, Avg = 309944301.00 Max = 594290827 Min = 25597775
+Fairness index: 0.542993
+Average atomic execution time(ns) = 48.395792
+
+

@@ -1,0 +1,44 @@
+test:   CAS_DIFFERENT_WORD  / #threads: 4 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 01 (CPU 1) operation_executed 148582767 
+Thread 02 (CPU 2) operation_executed 224069983 
+Thread 00 (CPU 0) operation_executed 235340013 
+Thread 03 (CPU 3) operation_executed 236356767 
+Execution: Total = 844349530, Avg = 211087382.50 Max = 236356767 Min = 148582767
+Fairness index: 0.971111
+Average atomic execution time(ns) = 35.530309
+
+
+test:          CAS_SUCCESS  / #threads: 6 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 05 (CPU 27) operation_executed 67779 
+Thread 00 (CPU 22) operation_executed 4291595 
+Thread 03 (CPU 25) operation_executed 6802865 
+Thread 02 (CPU 24) operation_executed 9566802 
+Thread 01 (CPU 23) operation_executed 12286252 
+Thread 04 (CPU 26) operation_executed 96777845 
+Execution: Total = 129793138, Avg = 21632189.67 Max = 96777845 Min = 67779
+Fairness index: 0.290259
+Average atomic execution time(ns) = 231.137027
+
+
+test:   CAS_DIFFERENT_WORD  / #threads: 4 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 0) operation_executed 9844615 
+Thread 03 (CPU 3) operation_executed 47247949 
+Thread 02 (CPU 2) operation_executed 48647597 
+Thread 01 (CPU 1) operation_executed 60591650 
+Execution: Total = 166331811, Avg = 41582952.75 Max = 60591650 Min = 9844615
+Fairness index: 0.826627
+Average atomic execution time(ns) = 180.362372
+
+
+test:          CAS_SUCCESS  / #threads: 6 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 22) operation_executed 12972 
+Thread 01 (CPU 23) operation_executed 13579 
+Thread 02 (CPU 24) operation_executed 1933502 
+Thread 03 (CPU 25) operation_executed 7325934 
+Thread 04 (CPU 26) operation_executed 29523703 
+Thread 05 (CPU 27) operation_executed 52203821 
+Execution: Total = 91013511, Avg = 15168918.50 Max = 52203821 Min = 12972
+Fairness index: 0.377795
+Average atomic execution time(ns) = 329.621390
+
+
