@@ -94,20 +94,23 @@ run_single_linked_list () {
 run_two_my_ccbench () {
   go_my_ccbench
   build_my_ccbench
-  if [ -d "./two_ccbench" ]; then
-    echo "two_ccbench directory already exists, please remove it first"
-    exit 1 
-  fi
-  mkdir two_ccbench
-  for a in 5 10 30 60 120
+  #if [ -d "./two_ccbench" ]; then
+  #  echo "two_ccbench directory already exists, please remove it first"
+  #  exit 1 
+  #fi
+  #mkdir two_ccbench
+  for a in 30
   do
-    b1=2
+    b1=10
     while [ $b1 -lt 41 ] 
     do
-      t1=12
-      while [ $t1 -lt 24 ]
-      do
-        b2=1
+      t1=18
+      #while [ $t1 -lt 24 ]
+      #do
+        ./ccbench -a$a -b$b1 -d0 -t$t1 > output1
+        ./ccbench -a$a -b$b1 -d1 -t$t1 > output2
+        ./ccbench -a$a -b$b1 -d2 -t$t1 > output3
+        b2=2
         while [ $b2 -lt `expr 41 - $b1` ]
         do
           t2=12
@@ -119,19 +122,31 @@ run_two_my_ccbench () {
       	        0)
       	          #hyperthreading
                   g=`expr $b1 / 2`
-                  if [[ `expr $b1 % 2` != 0 ]] && [[ $b2 > 1 ]]; then
-                    g=`expr $g + 1`
-                  fi
-                  while [ `expr $g + $(($b2 + 1)) / 2` -lt 21 ]
+                  while [ `expr $g + $b2 / 2` -lt 21 ]
                   do
-                    ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
-                    ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                    cat output1 > two_ccbench/duration${a}_ccbench1_${b1}_CPUs_test${t1}_ccbench2_${b2}_CPUs_test${t2}_Hyperthreading_start${g}
+                    ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g >> two_ccbench/duration${a}_ccbench1_${b1}_CPUs_test${t1}_ccbench2_${b2}_CPUs_test${t2}_Hyperthreading_start${g}
                     echo "./ccbench -a$a -b$b1 -d$d -t$t1 & ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g"
-                    ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/temp1 & ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g > ./two_ccbench/temp2
-                    cat ./two_ccbench/temp1 >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
-                    cat ./two_ccbench/temp2 >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
-                    rm -f ./two_ccbench/temp*
-                    g=`expr $g + 1`
+                    ./ccbench -a$a -b$b1 -d$d -t$t1 > temp1 & ./ccbench -a$a -b$b2 -d$d -g$g -t$t2 > temp2
+                    #./ccbench -a$a -b$b2 -d$d -g$g -t$t2 > temp2 & ./ccbench -a$a -b$b1 -d$d -t$t1 > temp1  
+                    sleep 1
+                    killall -r ccbench
+                    cat temp1 >> two_ccbench/duration${a}_ccbench1_${b1}_CPUs_test${t1}_ccbench2_${b2}_CPUs_test${t2}_Hyperthreading_start${g}
+                    cat temp2 >> two_ccbench/duration${a}_ccbench1_${b1}_CPUs_test${t1}_ccbench2_${b2}_CPUs_test${t2}_Hyperthreading_start${g}
+                    g=`expr $g + 3`
+                  #if [[ `expr $b1 % 2` != 0 ]] && [[ $b2 > 1 ]]; then
+                  #  g=`expr $g + 1`
+                  #fi
+                  #while [ `expr $g + $(($b2 + 1)) / 2` -lt 21 ]
+                  #do
+                  #  ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                  #  ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                  #  echo "./ccbench -a$a -b$b1 -d$d -t$t1 & ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g"
+                  #  ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/temp1 & ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g > ./two_ccbench/temp2
+                  #  cat ./two_ccbench/temp1 >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                  #  cat ./two_ccbench/temp2 >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                  #  rm -f ./two_ccbench/temp*
+                  #  g=`expr $g + 1`
                   done
                   ;;
                 1)
@@ -139,46 +154,66 @@ run_two_my_ccbench () {
                   g=$b1
                   while [ `expr $g + $b2` -lt 41 ]
                   do
-                    ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
-                    ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                    cat output2 > two_ccbench/duration${a}_ccbench1_${b1}_CPUs_test${t1}_ccbench2_${b2}_CPUs_test${t2}_Intra_Socket_start${g}
+                    ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g >> two_ccbench/duration${a}_ccbench1_${b1}_CPUs_test${t1}_ccbench2_${b2}_CPUs_test${t2}_Intra_Socket_start${g}
                     echo "./ccbench -a$a -b$b1 -d$d -t$t1 & ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g"
-                    ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/temp1 & ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g > ./two_ccbench/temp2
-                    cat ./two_ccbench/temp1 >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
-                    cat ./two_ccbench/temp2 >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
-                    rm -f ./two_ccbench/temp*
-                    g=`expr $g + 1`
+                    ./ccbench -a$a -b$b1 -d$d -t$t1 > temp1 & ./ccbench -a$a -b$b2 -d$d -g$g -t$t2 > temp2
+                    #./ccbench -a$a -b$b2 -d$d -g$g -t$t2 > temp2 & ./ccbench -a$a -b$b1 -d$d -t$t1 > temp1 
+                    sleep 1
+                    killall -r ccbench
+                    cat temp1 >> two_ccbench/duration${a}_ccbench1_${b1}_CPUs_test${t1}_ccbench2_${b2}_CPUs_test${t2}_Intra_Socket_start${g}
+                    cat temp2 >> two_ccbench/duration${a}_ccbench1_${b1}_CPUs_test${t1}_ccbench2_${b2}_CPUs_test${t2}_Intra_Socket_start${g}
+                    g=`expr $g + 3`
+                   # ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                   # ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                   # echo "./ccbench -a$a -b$b1 -d$d -t$t1 & ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g"
+                   # ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/temp1 & ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g > ./two_ccbench/temp2
+                   # cat ./two_ccbench/temp1 >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                   # cat ./two_ccbench/temp2 >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                   # rm -f ./two_ccbench/temp*
+                   # g=`expr $g + 1`
                   done
                   ;;
                 2)
                   #inter-socket
                   g=`expr $b1 / 2`
-                  if [[ `expr $b1 % 2` != 0 ]] && [[ $b2 > 1 ]]; then
-                    g=`expr $g + 1`
-                  fi
-                  while [ `expr $g + $(($b2 + 1)) / 2` -lt 41 ]
+                  while [ `expr $g + $b2 / 2` -lt 30 ]
                   do
-                    ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
-                    ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                    cat output3 > two_ccbench/duration${a}_ccbench1_${b1}_CPUs_test${t1}_ccbench2_${b2}_CPUs_test${t2}_Inter_Socket_start${g}
+                    ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g >> two_ccbench/duration${a}_ccbench1_${b1}_CPUs_test${t1}_ccbench2_${b2}_CPUs_test${t2}_Inter_Socket_start${g}
                     echo "./ccbench -a$a -b$b1 -d$d -t$t1 & ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g"
-                    ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/temp1 & ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g > ./two_ccbench/temp2
-                    cat ./two_ccbench/temp1 >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
-                    cat ./two_ccbench/temp2 >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
-                    rm -f ./two_ccbench/temp*
-                    if [ $g == 9 ]; then
+                    #./ccbench -a$a -b$b2 -d$d -g$g -t$t2 > temp2 & ./ccbench -a$a -b$b1 -d$d -t$t1 > temp1 
+                    ./ccbench -a$a -b$b1 -d$d -t$t1 > temp1 & ./ccbench -a$a -b$b2 -d$d -g$g -t$t2 > temp2
+                    sleep 1
+                    killall -r ccbench
+                    cat temp1 >> two_ccbench/duration${a}_ccbench1_${b1}_CPUs_test${t1}_ccbench2_${b2}_CPUs_test${t2}_Inter_Socket_start${g}
+                    cat temp2 >> two_ccbench/duration${a}_ccbench1_${b1}_CPUs_test${t1}_ccbench2_${b2}_CPUs_test${t2}_Inter_Socket_start${g}                   
+                    if [ `expr $g + 3` -ge 10 ]; then
                       g=`expr $g + 10`
                     fi
-                    g=`expr $g + 1`
+                    g=`expr $g + 3`                 
+                   # ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                   # ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                   # echo "./ccbench -a$a -b$b1 -d$d -t$t1 & ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g"
+                   # ./ccbench -a$a -b$b1 -d$d -t$t1 > ./two_ccbench/temp1 & ./ccbench -a$a -b$b2 -d$d -t$t2 -g$g > ./two_ccbench/temp2
+                   # cat ./two_ccbench/temp1 >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                   # cat ./two_ccbench/temp2 >> ./two_ccbench/duration${a}_threads${b1}_${b2}_placement${d}_test${t1}_${t2}_start${g}
+                   # rm -f ./two_ccbench/temp*
+                   # if [ $g == 9 ]; then
+                   #   g=`expr $g + 10`
+                   # fi
+                   # g=`expr $g + 1`
                   done
                   ;;
               esac
             done
             t2=`expr $t2 + 1`
           done
-          b2=`expr $b2 + 1`
+          b2=`expr $b2 + 4`
         done
-        t1=`expr $t1 + 1`
-      done
-      b1=`expr $b1 + 1`
+       #t1=`expr $t1 + 1`
+      #done
+      b1=`expr $b1 + 6`
     done
   done
 }
