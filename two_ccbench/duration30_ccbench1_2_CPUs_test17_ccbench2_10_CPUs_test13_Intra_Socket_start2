@@ -1,0 +1,32 @@
+test:   FAI_DIFFERENT_LINE  / #threads: 2 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 0) operation_executed 362989706 
+Thread 01 (CPU 1) operation_executed 363531003 
+Execution: Total = 726520709, Avg = 363260354.50 Max = 363531003 Min = 362989706
+Fairness index: 0.999999
+Average atomic execution time(ns) = 41.292698
+
+
+test:   CAS_DIFFERENT_WORD  / #threads: 10 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 03 (CPU 5) operation_executed 39488118 
+Thread 04 (CPU 6) operation_executed 53141208 
+Thread 07 (CPU 9) operation_executed 53171104 
+Thread 02 (CPU 4) operation_executed 53184571 
+Thread 05 (CPU 7) operation_executed 53187026 
+Thread 00 (CPU 2) operation_executed 53264895 
+Thread 06 (CPU 8) operation_executed 53492157 
+Thread 01 (CPU 3) operation_executed 53802994 
+Thread 08 (CPU 10) operation_executed 331221537 
+Thread 09 (CPU 11) operation_executed 350146667 
+Execution: Total = 1094100277, Avg = 109410027.70 Max = 350146667 Min = 39488118
+Fairness index: 0.471706
+Average atomic execution time(ns) = 27.419790
+
+
+test:   FAI_DIFFERENT_LINE  / #threads: 2 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 01 (CPU 1) operation_executed 43981712 
+Thread 00 (CPU 0) operation_executed 44181079 
+Execution: Total = 88162791, Avg = 44081395.50 Max = 44181079 Min = 43981712
+Fairness index: 0.999995
+Average atomic execution time(ns) = 340.279608
+
+

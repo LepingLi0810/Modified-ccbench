@@ -1,0 +1,28 @@
+test:   FAI_DIFFERENT_LINE  / #threads: 2 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 0) operation_executed 362989706 
+Thread 01 (CPU 1) operation_executed 363531003 
+Execution: Total = 726520709, Avg = 363260354.50 Max = 363531003 Min = 362989706
+Fairness index: 0.999999
+Average atomic execution time(ns) = 41.292698
+
+
+test:          CAS_SUCCESS  / #threads: 6 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 00 (CPU 14) operation_executed 37227 
+Thread 02 (CPU 16) operation_executed 2310679 
+Thread 01 (CPU 15) operation_executed 14199308 
+Thread 04 (CPU 18) operation_executed 15405943 
+Thread 05 (CPU 19) operation_executed 49252700 
+Thread 03 (CPU 17) operation_executed 58025738 
+Execution: Total = 139231595, Avg = 23205265.83 Max = 58025738 Min = 37227
+Fairness index: 0.518013
+Average atomic execution time(ns) = 215.468335
+
+
+test:   FAI_DIFFERENT_LINE  / #threads: 2 / #duration: 30s / placement:                   Intra-socket  / fence:  none
+Thread 01 (CPU 1) operation_executed 207399106 
+Thread 00 (CPU 0) operation_executed 236732252 
+Execution: Total = 444131358, Avg = 222065679.00 Max = 236732252 Min = 207399106
+Fairness index: 0.995657
+Average atomic execution time(ns) = 67.547584
+
+

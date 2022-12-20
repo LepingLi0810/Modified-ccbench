@@ -1,0 +1,28 @@
+test:   FAI_DIFFERENT_LINE  / #threads: 2 / #duration: 30s / placement:                 Hyperthreading  / fence:  none
+Thread 01 (CPU 20) operation_executed 1195371125 
+Thread 00 (CPU 0) operation_executed 1202680680 
+Execution: Total = 2398051805, Avg = 1199025902.50 Max = 1202680680 Min = 1195371125
+Fairness index: 0.999991
+Average atomic execution time(ns) = 12.510155
+
+
+test:          CAS_SUCCESS  / #threads: 6 / #duration: 30s / placement:                 Hyperthreading  / fence:  none
+Thread 01 (CPU 5) operation_executed 36024000 
+Thread 04 (CPU 25) operation_executed 36137271 
+Thread 05 (CPU 26) operation_executed 36213823 
+Thread 02 (CPU 6) operation_executed 36325583 
+Thread 03 (CPU 24) operation_executed 36877908 
+Thread 00 (CPU 4) operation_executed 39931036 
+Execution: Total = 221509621, Avg = 36918270.17 Max = 39931036 Min = 36024000
+Fairness index: 0.998616
+Average atomic execution time(ns) = 135.434298
+
+
+test:   FAI_DIFFERENT_LINE  / #threads: 2 / #duration: 30s / placement:                 Hyperthreading  / fence:  none
+Thread 00 (CPU 0) operation_executed 125343459 
+Thread 01 (CPU 20) operation_executed 125424045 
+Execution: Total = 250767504, Avg = 125383752.00 Max = 125424045 Min = 125343459
+Fairness index: 1.000000
+Average atomic execution time(ns) = 119.632726
+
+

@@ -1,0 +1,44 @@
+test:   FAI_DIFFERENT_LINE  / #threads: 8 / #duration: 30s / placement:                   Inter-socket  / fence:  none
+Thread 03 (CPU 3) operation_executed 84247351 
+Thread 07 (CPU 13) operation_executed 104301518 
+Thread 01 (CPU 1) operation_executed 110681701 
+Thread 02 (CPU 2) operation_executed 112764428 
+Thread 00 (CPU 0) operation_executed 115735411 
+Thread 04 (CPU 10) operation_executed 157564909 
+Thread 05 (CPU 11) operation_executed 158525471 
+Thread 06 (CPU 12) operation_executed 162011050 
+Execution: Total = 1005831839, Avg = 125728979.88 Max = 162011050 Min = 84247351
+Fairness index: 0.954130
+Average atomic execution time(ns) = 29.826059
+
+
+test:   CAS_DIFFERENT_WORD  / #threads: 10 / #duration: 30s / placement:                   Inter-socket  / fence:  none
+Thread 01 (CPU 8) operation_executed 81820853 
+Thread 02 (CPU 9) operation_executed 83134155 
+Thread 00 (CPU 7) operation_executed 84209195 
+Thread 03 (CPU 20) operation_executed 84277319 
+Thread 04 (CPU 21) operation_executed 85325429 
+Thread 09 (CPU 31) operation_executed 117955787 
+Thread 05 (CPU 17) operation_executed 120246566 
+Thread 08 (CPU 30) operation_executed 122101759 
+Thread 06 (CPU 18) operation_executed 122243616 
+Thread 07 (CPU 19) operation_executed 122632399 
+Execution: Total = 1023947078, Avg = 102394707.80 Max = 122632399 Min = 81820853
+Fairness index: 0.967720
+Average atomic execution time(ns) = 29.298389
+
+
+test:   FAI_DIFFERENT_LINE  / #threads: 8 / #duration: 30s / placement:                   Inter-socket  / fence:  none
+Thread 01 (CPU 1) operation_executed 32633283 
+Thread 00 (CPU 0) operation_executed 33031036 
+Thread 02 (CPU 2) operation_executed 43025012 
+Thread 04 (CPU 10) operation_executed 50185189 
+Thread 05 (CPU 11) operation_executed 50508423 
+Thread 06 (CPU 12) operation_executed 59853358 
+Thread 03 (CPU 3) operation_executed 59950484 
+Thread 07 (CPU 13) operation_executed 90153730 
+Execution: Total = 419340515, Avg = 52417564.38 Max = 90153730 Min = 32633283
+Fairness index: 0.901556
+Average atomic execution time(ns) = 71.540905
+
+
